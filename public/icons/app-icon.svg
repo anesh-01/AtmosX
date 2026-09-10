@@ -1,0 +1,60 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#071926" />
+      <stop offset="50%" stop-color="#0E3350" />
+      <stop offset="100%" stop-color="#154A6E" />
+    </linearGradient>
+    <linearGradient id="cyanGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5FF" />
+      <stop offset="100%" stop-color="#00A3C4" />
+    </linearGradient>
+    <linearGradient id="amberGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFB300" />
+      <stop offset="100%" stop-color="#F57C00" />
+    </linearGradient>
+    <filter id="glow" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <!-- Background Base with rounded squircle -->
+  <rect x="16" y="16" width="480" height="480" rx="108" fill="url(#bgGrad)" stroke="#1F7893" stroke-width="4" stroke-opacity="0.5" />
+
+  <!-- Radar Grid concentric rings -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#2A5D7C" stroke-width="2" stroke-dasharray="6,8" opacity="0.6"/>
+  <circle cx="256" cy="256" r="145" fill="none" stroke="#2A5D7C" stroke-width="2" stroke-dasharray="4,6" opacity="0.7"/>
+  <circle cx="256" cy="256" r="90" fill="none" stroke="#2A5D7C" stroke-width="2" opacity="0.8"/>
+  <circle cx="256" cy="256" r="35" fill="#0E3350" stroke="#00E5FF" stroke-width="3"/>
+
+  <!-- Crosshairs -->
+  <line x1="256" y1="56" x2="256" y2="456" stroke="#2A5D7C" stroke-width="2" stroke-dasharray="4,6" opacity="0.5"/>
+  <line x1="56" y1="256" x2="456" y2="256" stroke="#2A5D7C" stroke-width="2" stroke-dasharray="4,6" opacity="0.5"/>
+
+  <!-- Radar Sweep Sector -->
+  <path d="M256,256 L397,115 A200,200 0 0,0 256,56 Z" fill="url(#cyanGrad)" opacity="0.25" />
+
+  <!-- Atmospheric Wavefronts / Isobars -->
+  <path d="M120 180 Q190 140 270 170 T400 150" fill="none" stroke="#00E5FF" stroke-width="5" stroke-linecap="round" filter="url(#glow)" opacity="0.85"/>
+  <path d="M100 230 Q200 190 300 225 T420 210" fill="none" stroke="#8FD4E8" stroke-width="3" stroke-linecap="round" opacity="0.6"/>
+
+  <!-- Weather Indicator Elements -->
+  <!-- Storm / Rain Drop -->
+  <g transform="translate(160, 310)">
+    <path d="M16,0 C16,0 32,22 32,34 A16,16 0 0,1 0,34 C0,22 16,0 16,0 Z" fill="#00E5FF" opacity="0.9" />
+  </g>
+  <g transform="translate(200, 335) scale(0.75)">
+    <path d="M16,0 C16,0 32,22 32,34 A16,16 0 0,1 0,34 C0,22 16,0 16,0 Z" fill="#8FD4E8" opacity="0.8" />
+  </g>
+
+  <!-- Sun Energy Spark / Climate Beacon -->
+  <circle cx="345" cy="175" r="14" fill="url(#amberGrad)" filter="url(#glow)"/>
+  <line x1="345" y1="145" x2="345" y2="155" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+  <line x1="345" y1="195" x2="345" y2="205" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+  <line x1="315" y1="175" x2="325" y2="175" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+  <line x1="365" y1="175" x2="375" y2="175" stroke="#FFB300" stroke-width="3" stroke-linecap="round"/>
+
+  <!-- Center Target Core -->
+  <circle cx="256" cy="256" r="10" fill="#00E5FF" filter="url(#glow)"/>
+</svg>

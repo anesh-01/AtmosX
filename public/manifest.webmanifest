@@ -1,0 +1,36 @@
+{
+  "name": "WeatherGPT — Conversational Climate Intelligence",
+  "short_name": "WeatherGPT",
+  "description": "Grounded conversational climate intelligence, voice interface, early warnings, and weather photo/doc scanner for SIH26068",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#071926",
+  "theme_color": "#0E3350",
+  "orientation": "any",
+  "icons": [
+    {
+      "src": "./icons/app-icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Voice Query",
+      "short_name": "Voice",
+      "description": "Ask weather and climate questions with voice",
+      "url": "./index.html?action=voice",
+      "icons": [{ "src": "./icons/app-icon.svg", "sizes": "96x96" }]
+    },
+    {
+      "name": "Scan Weather Photo",
+      "short_name": "Scan",
+      "description": "Upload sky photo or weather bulletin",
+      "url": "./index.html?action=scan",
+      "icons": [{ "src": "./icons/app-icon.svg", "sizes": "96x96" }]
+    }
+  ],
+  "categories": ["weather", "utilities", "productivity"]
+}

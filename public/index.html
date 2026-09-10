@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 https://generativelanguage.googleapis.com https://api.anthropic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; media-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
+  <meta http-equiv="X-Content-Type-Options" content="nosniff">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#092032">
+  <meta name="description" content="Conversational climate intelligence, early disaster warnings, two-way voice interface, and weather photo/doc scanner grounded in IMD meteorological data.">
+
+  <!-- PWA Manifest & App Icons -->
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" type="image/svg+xml" href="./icons/app-icon.svg">
+  <link rel="apple-touch-icon" href="./icons/app-icon.svg">
+
+  <title>WeatherGPT — Conversational Climate Intelligence & Early Warning</title>
+
+  <!-- Typography -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <!-- Secure Embedded SVG Symbols -->
+  <svg style="display:none" aria-hidden="true">
+    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M12 12 L18 7"/><path d="M8.5 8.5a5 5 0 0 1 7 0"/><path d="M5.5 5.5a9 9 0 0 1 13 0"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12 L20 5 L14 20 L11.5 13 Z"/><path d="M11.5 13 L4 12"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2 a3 3 0 0 0 -3 3 v7 a3 3 0 0 0 6 0 v-7 a3 3 0 0 0 -3 -3 z"/><path d="M19 10 v2 a7 7 0 0 1 -14 0 v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></symbol>
+    <symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
+    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
+    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 L21 19 L3 19 Z"/><path d="M12 10 v4"/><circle cx="12" cy="16.3" r=".9" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 v5"/><circle cx="12" cy="8" r=".9" fill="currentColor" stroke="none"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5 h16 v11 H9 l-4 4 v-4 H4 Z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 4 L21 9 L12 14 L3 9 Z"/><path d="M3 14 L12 19 L21 14"/></symbol>
+    <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
+    <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+    <symbol id="i-wind" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></symbol>
+    <symbol id="i-temp" viewBox="0 0 24 24"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></symbol>
+  </svg>
+
+  <!-- Topbar Header -->
+  <header class="topbar">
+    <div class="topbar-inner">
+      <div class="brand">
+        <div class="brand-radar">
+          <div class="radar-sweep-anim"></div>
+          <svg class="icon"><use href="#i-radar"/></svg>
+        </div>
+        <div class="brand-meta">
+          <h1>WeatherGPT <span class="brand-badge">SIH26068</span></h1>
+          <div class="sub">AtmosX · Climate & Early Warning Intelligence</div>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <div class="station-badge">
+          <span class="pulse-dot" aria-hidden="true"></span>
+          <span id="statusStationName">Select Station</span>
+        </div>
+
+        <button id="btnInstallPwa" class="pwa-install-btn" type="button" style="display:none;" title="Install WeatherGPT App">
+          <svg class="icon"><use href="#i-download"/></svg>
+          <span>Install App</span>
+        </button>
+
+        <button id="btnOpenSettings" class="btn-icon-top" type="button" title="Settings & Security" aria-label="Open settings">
+          <svg class="icon"><use href="#i-settings"/></svg>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Application Container -->
+  <main class="app-container">
+
+    <!-- SIH Project Disclaimer -->
+    <div class="disclaimer-card">
+      <svg class="icon"><use href="#i-info"/></svg>
+      <div>
+        <strong>Smart India Hackathon Prototype (SIH26068).</strong> Grounded in verified Indian meteorological data feeds and official IMD/WMO warning bulletins with automated RAG consistency verification.
+      </div>
+    </div>
+
+    <!-- Active Warning Alert Banner -->
+    <section class="warning-banner" id="warningBanner" role="alert" aria-live="assertive">
+      <div class="banner-inner">
+        <div class="warning-icon">
+          <svg class="icon"><use href="#i-alert"/></svg>
+        </div>
+        <div>
+          <div class="w-badge" id="warnSeverityBadge">Warning Alert</div>
+          <div class="w-headline" id="warnHeadline">Severe alert condition</div>
+          <div class="w-protocol" id="warnProtocol">Follow disaster management procedures.</div>
+          <div class="w-meta" id="warnMeta">IMD Regional Meteorological Centre</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Mobile Navigation Switcher Tabs -->
+    <nav class="mobile-nav-tabs" role="tablist" aria-label="Switch panels">
+      <button type="button" id="tabChat" class="active" role="tab" aria-selected="true">
+        <svg class="icon"><use href="#i-chat"/></svg> Chat & Voice
+      </button>
+      <button type="button" id="tabEvidence" role="tab" aria-selected="false">
+        <svg class="icon"><use href="#i-layers"/></svg> Telemetry & Evidence
+      </button>
+    </nav>
+
+    <!-- Side-By-Side Workspace Shell -->
+    <div class="workspace-shell">
+
+      <!-- LEFT COLUMN: CONVERSATION STREAM & VOICE INTERFACE -->
+      <section class="chat-column tab-visible" id="chatColumn" aria-label="WeatherGPT Conversation Stream">
+        <div class="chat-col-header">
+          <div class="chat-col-title">
+            <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-chat"/></svg>
+            <h2>Climate Assistant</h2>
+          </div>
+          <div class="chat-actions">
+            <button id="btnClearChat" class="chat-btn-action" type="button" title="Clear conversation">
+              <svg class="icon"><use href="#i-trash"/></svg> Clear
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages Container -->
+        <div class="messages-container" id="messagesContainer">
+          <!-- Empty State / Persona Welcome -->
+          <div class="empty-welcome" id="emptyWelcome">
+            <h3>Ask anything regarding weather, safety, or farming.</h3>
+            <p>WeatherGPT resolves your location and intent, checks active IMD alerts, scans uploaded sky photos or documents, and delivers grounded, actionable intelligence.</p>
+
+            <div class="persona-group-title">Quick Inquiries by Persona</div>
+            <div class="prompt-chips-grid">
+              <button type="button" class="prompt-chip" data-q="Will it rain heavily in Wayanad district tomorrow?">
+                <svg class="icon"><use href="#i-drop"/></svg>
+                <span><strong>Disaster Alert</strong>: Wayanad rain & landslide risk?</span>
+              </button>
+              <button type="button" class="prompt-chip" data-q="Can I spray pesticide on my vineyards near Nashik tomorrow morning?">
+                <svg class="icon"><use href="#i-wind"/></svg>
+                <span><strong>Farmer Advisory</strong>: Spray crops near Nashik?</span>
+              </button>
+              <button type="button" class="prompt-chip" data-q="Is there a cyclonic storm or surge warning for Puri right now?">
+                <svg class="icon"><use href="#i-alert"/></svg>
+                <span><strong>Coastal Warning</strong>: Puri cyclone landfall?</span>
+              </button>
+              <button type="button" class="prompt-chip" data-q="How intense is the heatwave in Jaipur this week?">
+                <svg class="icon"><use href="#i-temp"/></svg>
+                <span><strong>Urban Safety</strong>: Heatwave severity in Jaipur?</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Real-Time Voice Waveform Animation Bar -->
+        <div class="waveform-container" id="waveformContainer">
+          <div class="waveform-meta">
+            <span class="pulse-dot" style="background:var(--neon-red);" aria-hidden="true"></span>
+            <span id="waveformText">Listening to speech…</span>
+          </div>
+          <canvas id="waveformCanvas" class="waveform-canvas" width="140" height="24"></canvas>
+          <button id="btnStopVoice" class="btn-secondary" style="padding: 4px 10px; font-size: 11.5px;" type="button">Stop</button>
+        </div>
+
+        <!-- Composer File Attachment Preview Chip -->
+        <div class="composer-attachment-preview" id="composerAttachmentPreview">
+          <div class="attachment-info">
+            <img id="attachmentThumb" class="attachment-thumb" src="" alt="Thumbnail" style="display:none;">
+            <span id="attachmentTitle">file.jpg</span>
+          </div>
+          <button id="btnRemoveAttachment" class="btn-remove-attachment" type="button" title="Remove attachment">
+            <svg class="icon"><use href="#i-close"/></svg>
+          </button>
+        </div>
+
+        <!-- Composer Bar -->
+        <div class="composer-bar">
+          <button id="btnUploadTrigger" class="btn-composer-icon" type="button" title="Upload Sky Photo or Weather Bulletin Document" aria-label="Upload photo or document">
+            <svg class="icon"><use href="#i-camera"/></svg>
+          </button>
+
+          <button id="btnVoiceTrigger" class="btn-composer-icon btn-composer-voice" type="button" title="Voice Input (Speech-to-Text)" aria-label="Toggle voice input">
+            <svg class="icon"><use href="#i-mic"/></svg>
+          </button>
+
+          <div class="composer-input-wrap">
+            <input id="inputPrompt" class="composer-input" type="text" placeholder="Ask about weather, a warning, or crop decision…" maxlength="280" autocomplete="off" spellcheck="false" aria-label="Enter question">
+            <span class="composer-char-count" id="charCount">280</span>
+          </div>
+
+          <button id="btnSend" class="btn-send-main" type="button" aria-label="Send query">
+            <span>Send</span>
+            <svg class="icon"><use href="#i-send"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- RIGHT COLUMN: TELEMETRY & EVIDENCE OBSERVATORY -->
+      <section class="evidence-column" id="evidenceColumn" aria-label="Meteorological Telemetry and Grounding Observatory">
+        <div class="ev-header">
+          <h3>Climate Observatory</h3>
+          <div class="rag-pipeline" aria-label="Grounding Pipeline">
+            <span class="pipeline-step" data-step="understand">1. Understand</span>
+            <span class="pipeline-step" data-step="ground">2. Ground</span>
+            <span class="pipeline-step" data-step="act">3. Act</span>
+          </div>
+        </div>
+
+        <!-- Station Quick Selector Dropdown -->
+        <div class="station-selector-wrap">
+          <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-radar"/></svg>
+          <select id="stationSelect" class="station-select" aria-label="Select meteorological station">
+            <!-- Dynamically populated from weather_data.js -->
+          </select>
+        </div>
+
+        <!-- Live Telemetry Gauges Grid -->
+        <div class="telemetry-grid">
+          <div class="gauge-card">
+            <div class="gauge-top">
+              <span>Temperature</span>
+              <svg class="icon"><use href="#i-temp"/></svg>
+            </div>
+            <div class="gauge-value" id="valTemp">--°C</div>
+            <div class="gauge-sub" id="valTempSub">Surface sensor</div>
+          </div>
+
+          <div class="gauge-card">
+            <div class="gauge-top">
+              <span>Humidity</span>
+              <svg class="icon"><use href="#i-drop"/></svg>
+            </div>
+            <div class="gauge-value" id="valHumidity">--%</div>
+            <div class="gauge-sub">Relative moisture</div>
+          </div>
+
+          <div class="gauge-card">
+            <div class="gauge-top">
+              <span>Barometer</span>
+              <svg class="icon"><use href="#i-layers"/></svg>
+            </div>
+            <div class="gauge-value" id="valPressure">---- hPa</div>
+            <div class="gauge-sub">Atmospheric pressure</div>
+          </div>
+
+          <div class="gauge-card">
+            <div class="gauge-top">
+              <span>Wind Speed</span>
+              <svg class="icon"><use href="#i-wind"/></svg>
+            </div>
+            <div class="gauge-value" id="valWind">-- km/h</div>
+            <div class="gauge-sub" id="valWindSub">Heading: --</div>
+          </div>
+
+          <div class="gauge-card">
+            <div class="gauge-top">
+              <span>Rainfall</span>
+              <svg class="icon"><use href="#i-drop"/></svg>
+            </div>
+            <div class="gauge-value" id="valRain">-- mm</div>
+            <div class="gauge-sub">Surface accumulation</div>
+          </div>
+
+          <div class="gauge-card">
+            <div class="gauge-top">
+              <span>Air Quality</span>
+              <svg class="icon"><use href="#i-shield"/></svg>
+            </div>
+            <div class="gauge-value" id="valAqi">-- AQI</div>
+            <div class="gauge-sub" id="valAqiSub">Environmental index</div>
+          </div>
+        </div>
+
+        <!-- Grounding Confidence Bar -->
+        <div class="confidence-block">
+          <div class="confidence-header">
+            <span>Grounding Provenance Confidence</span>
+            <span id="confidenceLabel">Unresolved (0%)</span>
+          </div>
+          <div class="confidence-track">
+            <div class="confidence-fill" id="confidenceFill" style="width: 15%;"></div>
+          </div>
+        </div>
+
+        <!-- Dynamic Evidence Cards Stack -->
+        <div id="evidenceBody" style="display:flex; flex-direction:column; gap:12px;">
+          <!-- Populated by app.js -->
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- UPLOAD & WEATHER SCANNER MODAL -->
+  <div class="modal-overlay" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="uploadModalTitle">
+          <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-camera"/></svg>
+          Weather Vision & Document Scanner
+        </h3>
+        <button class="btn-modal-close" id="btnCloseUploadModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Dropzone -->
+        <div class="dropzone-box" id="fileDropzone" tabindex="0" role="button" aria-label="Drop weather photo or document here">
+          <div class="dropzone-icon">
+            <svg class="icon" style="width:24px; height:24px;"><use href="#i-download"/></svg>
+          </div>
+          <div class="dropzone-title">Click to upload or drag & drop</div>
+          <div class="dropzone-desc">
+            Upload sky/cloud photographs for computer vision cloud classification, or weather bulletin documents (.pdf, .txt, .csv) for parameter extraction.
+          </div>
+          <div class="file-type-tags">
+            <span class="file-tag">JPG / PNG / WEBP</span>
+            <span class="file-tag">PDF / TXT / CSV</span>
+            <span class="file-tag">Max 5MB</span>
+          </div>
+          <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.csv,.json" style="display:none;">
+        </div>
+
+        <!-- Scanner Results Preview Card -->
+        <div class="scanner-results-card" id="scannerResultsCard">
+          <div class="scan-card-top">
+            <img id="scanPreviewImg" class="scan-preview-img" src="" alt="Scanned weather preview" style="display:none;">
+            <div class="scan-meta-details">
+              <div class="scan-detected-title" id="scanDetectedTitle">Scanning feature...</div>
+              <div class="scan-tags-list" id="scanTagsList"></div>
+            </div>
+          </div>
+          <div class="scan-summary-text" id="scanSummaryText"></div>
+
+          <div class="modal-actions">
+            <button id="btnCancelScan" class="btn-secondary" type="button">Cancel</button>
+            <button id="btnAttachToQuery" class="btn-primary" type="button">
+              <svg class="icon"><use href="#i-check"/></svg> Attach to Weather Query
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS & SECURITY MODAL -->
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="settingsModalTitle">
+          <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-settings"/></svg>
+          Settings & Security Guardrails
+        </h3>
+        <button class="btn-modal-close" id="btnCloseSettingsModal" type="button" aria-label="Close settings">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <!-- Voice Interface Settings -->
+        <div class="settings-group">
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-label">Auto-Speak Bot Responses</div>
+              <div class="settings-desc">Automatically read out WeatherGPT answers using speech synthesis</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleAutoSpeak">
+              <span class="slider-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="settings-group">
+          <label class="settings-label" for="selectVoiceSpeed">Speech Synthesis Speed</label>
+          <select id="selectVoiceSpeed" class="settings-select">
+            <option value="0.85">0.85x — Deliberate</option>
+            <option value="1.0" selected>1.0x — Normal</option>
+            <option value="1.2">1.2x — Fast</option>
+          </select>
+        </div>
+
+        <div class="settings-group">
+          <label class="settings-label" for="selectVoiceChoice">Voice Character</label>
+          <select id="selectVoiceChoice" class="settings-select">
+            <!-- Dynamically populated from speechSynthesis.getVoices() -->
+          </select>
+        </div>
+
+        <hr style="border:none; border-top:1px solid var(--sky-border); margin: 6px 0;">
+
+        <!-- Cloud API Key Integration (Optional) -->
+        <div class="settings-group">
+          <div class="settings-toggle-row">
+            <div>
+              <div class="settings-label">Cloud LLM API Mode (Optional)</div>
+              <div class="settings-desc">By default, WeatherGPT uses the zero-latency Offline Expert Engine. Enable to route through Gemini or Claude with your personal key.</div>
+            </div>
+            <label class="toggle-switch">
+              <input type="checkbox" id="toggleExternalApi">
+              <span class="slider-track"></span>
+            </label>
+          </div>
+        </div>
+
+        <div id="externalApiConfigWrap" class="settings-group" style="display:none; flex-direction:column; gap:8px;">
+          <label class="settings-label" for="selectApiProvider">Provider</label>
+          <select id="selectApiProvider" class="settings-select">
+            <option value="gemini" selected>Google Gemini (gemini-1.5-flash)</option>
+            <option value="anthropic">Anthropic Claude (claude-3-5-sonnet)</option>
+          </select>
+
+          <label class="settings-label" for="inputApiKey">Personal API Key</label>
+          <input type="password" id="inputApiKey" class="settings-input" placeholder="AIzaSy... or sk-ant-..." autocomplete="off">
+          <div class="settings-desc">Your key is kept strictly in local browser storage; it is never sent to external servers other than the designated model endpoint.</div>
+        </div>
+
+        <!-- Security Guardrails Card -->
+        <div class="security-badge-box">
+          <svg class="icon"><use href="#i-shield"/></svg>
+          <div>
+            <strong>Hardened Client Security Active:</strong>
+            Strict CSP enabled, magic bytes binary validation on file uploads, anti-prompt injection barriers, and zero innerHTML injection.
+          </div>
+        </div>
+
+        <div class="modal-actions">
+          <button id="btnSaveSettings" class="btn-primary" type="button" style="width:100%;">Save Preferences</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    Weather-Grounded Climate RAG<span class="dot-sep">·</span>Two-Way Voice STT/TTS<span class="dot-sep">·</span>Computer Vision Sky Scanner<span class="dot-sep">·</span>Smart India Hackathon SIH26068
+  </footer>
+
+  <!-- Scripts -->
+  <script src="./data/weather_data.js"></script>
+  <script src="./app.js"></script>
+</body>
+</html>
