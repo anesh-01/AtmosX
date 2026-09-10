@@ -255,4 +255,7 @@ async def handle_weather_query(payload: WeatherQueryRequest):
     )
 
 
-# Serve the AtmosX frontend from the same public deployment service.\nBASE_DIR = Path(__file__).resolve().parent\nfrom fastapi.staticfiles import StaticFiles\napp.mount("/", StaticFiles(directory=str(BASE_DIR / "public"), html=True), name="frontend")\n
+# Serve the AtmosX frontend from the same public deployment service.
+BASE_DIR = Path(__file__).resolve().parent
+from fastapi.staticfiles import StaticFiles
+app.mount("/", StaticFiles(directory=str(BASE_DIR / "public"), html=True), name="frontend")
