@@ -1,5 +1,25 @@
+# Python
 __pycache__/
-*.pyc
-.env
+*.py[cod]
 .venv/
+venv/
+ENV/
+
+# Environment variables & secrets (NEVER commit)
+.env
+*.env
+.env.*
+!*.env.example
+*.pem
+*.key
+
+# IDE & OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs & temporary files
+*.log
+scratch/
 ssl/

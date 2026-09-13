@@ -2,13 +2,14 @@
  * Provides offline caching, network fallbacks, and PWA capabilities
  */
 
-const CACHE_NAME = 'weathergpt-v2.1.0';
+const CACHE_NAME = 'weathergpt-v2.6.0';
 const STATIC_ASSETS = [
   './',
   './index.html',
   './styles.css',
   './app.js',
   './data/weather_data.js',
+  './manifest.json',
   './manifest.webmanifest',
   './icons/app-icon.svg'
 ];
@@ -41,9 +42,13 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(event.request.url);
 
-  // For external APIs, always use network directly
+  // CRITICAL: NEVER intercept API requests — always let network handle API directly
+  if (url.pathname.startsWith('/api/')) {
+    return;
+  }
+
+  // For external resources (CDNs/fonts)
   if (url.origin !== self.location.origin) {
-    // Fonts or CDNs can be cached on demand
     if (url.origin.includes('fonts.googleapis.com') || url.origin.includes('fonts.gstatic.com')) {
       event.respondWith(
         caches.match(event.request).then((cached) => {
@@ -60,7 +65,21 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Stale-while-revalidate for local static assets
+  // Network-first for app.js and index.html to ensure live code updates
+  if (url.pathname.endsWith('app.js') || url.pathname.endsWith('index.html') || url.pathname === '/') {
+    event.respondWith(
+      fetch(event.request).then((networkResponse) => {
+        if (networkResponse && networkResponse.status === 200) {
+          const cloned = networkResponse.clone();
+          caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
+        }
+        return networkResponse;
+      }).catch(() => caches.match(event.request))
+    );
+    return;
+  }
+
+  // Stale-while-revalidate for other local static assets
   event.respondWith(
     caches.match(event.request).then((cachedResponse) => {
       const fetchPromise = fetch(event.request).then((networkResponse) => {
@@ -69,10 +88,7 @@ self.addEventListener('fetch', (event) => {
           caches.open(CACHE_NAME).then((cache) => cache.put(event.request, cloned));
         }
         return networkResponse;
-      }).catch((err) => {
-        // Offline and not in cache
-        return cachedResponse;
-      });
+      }).catch(() => cachedResponse);
 
       return cachedResponse || fetchPromise;
     })

@@ -2,130 +2,347 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; connect-src 'self' http://localhost:8000 http://127.0.0.1:8000 https://generativelanguage.googleapis.com https://api.anthropic.com; img-src 'self' data: blob:; script-src 'self' 'unsafe-inline'; media-src 'self' blob:; object-src 'none'; base-uri 'none'; frame-ancestors 'none';">
-  <meta http-equiv="X-Content-Type-Options" content="nosniff">
-  <meta name="referrer" content="no-referrer">
-  <meta name="theme-color" content="#092032">
-  <meta name="description" content="Conversational climate intelligence, early disaster warnings, two-way voice interface, and weather photo/doc scanner grounded in IMD meteorological data.">
-
-  <!-- PWA Manifest & App Icons -->
-  <link rel="manifest" href="./manifest.webmanifest">
-  <link rel="icon" type="image/svg+xml" href="./icons/app-icon.svg">
-  <link rel="apple-touch-icon" href="./icons/app-icon.svg">
-
-  <title>WeatherGPT — Conversational Climate Intelligence & Early Warning</title>
-
-  <!-- Typography -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+  <meta name="description" content="AtmosX WeatherGPT — Enterprise Climate Intelligence, Early Warning System & Severe Weather Forecaster">
+  <meta name="theme-color" content="#101B27">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <link rel="icon" type="image/svg+xml" href="icons/app-icon.svg">
+  <title>weatherGPT · Atmospheric AI & Climate Observatory</title>
+  
+  <!-- Preconnect to Font & API CDNs -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-
-  <link rel="stylesheet" href="./styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=IBM+Plex+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-
-  <!-- Secure Embedded SVG Symbols -->
-  <svg style="display:none" aria-hidden="true">
-    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="1.8" fill="currentColor" stroke="none"/><path d="M12 12 L18 7"/><path d="M8.5 8.5a5 5 0 0 1 7 0"/><path d="M5.5 5.5a9 9 0 0 1 13 0"/></symbol>
-    <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12 L20 5 L14 20 L11.5 13 Z"/><path d="M11.5 13 L4 12"/></symbol>
-    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 2 a3 3 0 0 0 -3 3 v7 a3 3 0 0 0 6 0 v-7 a3 3 0 0 0 -3 -3 z"/><path d="M19 10 v2 a7 7 0 0 1 -14 0 v-2"/><line x1="12" y1="19" x2="12" y2="22"/><line x1="8" y1="22" x2="16" y2="22"/></symbol>
+  <!-- System SVG Icon Sprite -->
+  <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
+    <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
+    <symbol id="i-radar" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/><line x1="12" y1="2" x2="12" y2="4"/><line x1="12" y1="20" x2="12" y2="22"/><line x1="2" y1="12" x2="4" y2="12"/><line x1="20" y1="12" x2="22" y2="12"/><line x1="12" y1="12" x2="19" y2="5"/></symbol>
+    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></symbol>
+    <symbol id="i-layers" viewBox="0 0 24 24"><polygon points="12 2 2 7 12 12 22 7 12 2"/><polyline points="2 17 12 22 22 17"/><polyline points="2 12 12 17 22 12"/></symbol>
     <symbol id="i-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></symbol>
-    <symbol id="i-doc" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></symbol>
-    <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14"/></symbol>
-    <symbol id="i-pause" viewBox="0 0 24 24"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></symbol>
-    <symbol id="i-drop" viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" /><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 4 L21 19 L3 19 Z"/><path d="M12 10 v4"/><circle cx="12" cy="16.3" r=".9" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M12 11 v5"/><circle cx="12" cy="8" r=".9" fill="currentColor" stroke="none"/></symbol>
-    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5 h16 v11 H9 l-4 4 v-4 H4 Z"/></symbol>
-    <symbol id="i-layers" viewBox="0 0 24 24"><path d="M12 4 L21 9 L12 14 L3 9 Z"/><path d="M3 14 L12 19 L21 14"/></symbol>
+    <symbol id="i-mic" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></symbol>
     <symbol id="i-settings" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></symbol>
-    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></symbol>
+    <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></symbol>
+    <symbol id="i-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></symbol>
     <symbol id="i-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></symbol>
-    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></symbol>
     <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></symbol>
+    <symbol id="i-drop" viewBox="0 0 24 24"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></symbol>
     <symbol id="i-wind" viewBox="0 0 24 24"><path d="M9.59 4.59A2 2 0 1 1 11 8H2m10.59 11.41A2 2 0 1 0 14 16H2m15.73-8.27A2.5 2.5 0 1 1 19.5 12H2"/></symbol>
     <symbol id="i-temp" viewBox="0 0 24 24"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></symbol>
+    <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></symbol>
+    <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></symbol>
+    
+    <symbol id="i-document" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="14 2 14 8 20 8" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="16" y1="13" x2="8" y2="13" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><line x1="16" y1="17" x2="8" y2="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-paperclip" viewBox="0 0 24 24"><path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66l-9.2 9.19a2 2 0 0 1-2.83-2.83l8.49-8.48" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+
+    <!-- In-Trend UI Icons -->
+    <symbol id="i-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><polyline points="6 9 12 15 18 9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chevron-up" viewBox="0 0 24 24"><polyline points="18 15 12 9 6 15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-sparkles" viewBox="0 0 24 24"><path d="M12 2l2.4 6.8L21 11l-6.6 2.2L12 20l-2.4-6.8L3 11l6.6-2.2z" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-volume" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-chart" viewBox="0 0 24 24"><line x1="18" y1="20" x2="18" y2="10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="12" y1="20" x2="12" y2="4" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><line x1="6" y1="20" x2="6" y2="14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+    <symbol id="i-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><polyline points="1 20 1 14 7 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+
+    <!-- Weather Brand SVG Symbol -->
+    <symbol id="i-main-weather-brand" viewBox="0 0 44 40">
+      <defs>
+        <radialGradient id="brandSunGrad" cx="35%" cy="35%" r="65%">
+          <stop offset="0%" stop-color="#FFE082"/>
+          <stop offset="50%" stop-color="#FFA726"/>
+          <stop offset="100%" stop-color="#FB8C00"/>
+        </radialGradient>
+        <linearGradient id="brandCloudGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF"/>
+          <stop offset="60%" stop-color="#ECEFF1"/>
+          <stop offset="100%" stop-color="#CFD8DC"/>
+        </linearGradient>
+      </defs>
+      <circle cx="15" cy="14" r="10" fill="url(#brandSunGrad)"/>
+      <path d="M12 28 h20 a8 8 0 0 0 1.5-15.8 A10.5 10.5 0 0 0 13 15.5 A6.5 6.5 0 0 0 12 28 z" fill="url(#brandCloudGrad)" filter="drop-shadow(0 3px 5px rgba(0,0,0,0.3))"/>
+      <g fill="#4FC3F7">
+        <ellipse cx="15" cy="33" rx="1.5" ry="2.8" transform="rotate(-15 15 33)"/>
+        <ellipse cx="22" cy="34" rx="1.5" ry="2.8" transform="rotate(-15 22 34)"/>
+        <ellipse cx="29" cy="33" rx="1.5" ry="2.8" transform="rotate(-15 29 33)"/>
+      </g>
+    </symbol>
+
+    <!-- Weather Condition Symbols -->
+    <symbol id="i-wx-sun" viewBox="0 0 32 32">
+      <defs>
+        <radialGradient id="sunGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#FFF9C4"/>
+          <stop offset="45%" stop-color="#FFD54F"/>
+          <stop offset="100%" stop-color="#FF9800"/>
+        </radialGradient>
+      </defs>
+      <circle cx="16" cy="16" r="7.5" fill="url(#sunGrad)" />
+      <g stroke="#FFB300" stroke-width="2" stroke-linecap="round">
+        <line x1="16" y1="2" x2="16" y2="5"/>
+        <line x1="16" y1="27" x2="16" y2="30"/>
+        <line x1="2" y1="16" x2="5" y2="16"/>
+        <line x1="27" y1="16" x2="30" y2="16"/>
+        <line x1="6.1" y1="6.1" x2="8.2" y2="8.2"/>
+        <line x1="23.8" y1="23.8" x2="25.9" y2="25.9"/>
+        <line x1="6.1" y1="25.9" x2="8.2" y2="23.8"/>
+        <line x1="23.8" y1="8.2" x2="25.9" y2="6.1"/>
+      </g>
+    </symbol>
+
+    <symbol id="i-wx-cloud" viewBox="0 0 32 32">
+      <defs>
+        <linearGradient id="cloudGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#CFD8DC"/>
+          <stop offset="100%" stop-color="#78909C"/>
+        </linearGradient>
+      </defs>
+      <path d="M10 24h13a6 6 0 0 0 1.2-11.9A8 8 0 0 0 9 14.5 5 5 0 0 0 10 24z" fill="url(#cloudGrad)"/>
+    </symbol>
+
+    <symbol id="i-wx-partly-cloudy" viewBox="0 0 32 32">
+      <defs>
+        <radialGradient id="sunPartGrad" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#FFF59D"/>
+          <stop offset="100%" stop-color="#FF9800"/>
+        </radialGradient>
+        <linearGradient id="cloudPartGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFFFFF"/>
+          <stop offset="100%" stop-color="#90A4AE"/>
+        </linearGradient>
+      </defs>
+      <circle cx="21" cy="11" r="6" fill="url(#sunPartGrad)"/>
+      <g stroke="#FFB300" stroke-width="1.8" stroke-linecap="round">
+        <line x1="21" y1="2" x2="21" y2="4"/>
+        <line x1="28" y1="11" x2="30" y2="11"/>
+        <line x1="26" y1="6" x2="27.5" y2="4.5"/>
+      </g>
+      <path d="M8 25h14a5.5 5.5 0 0 0 .5-10.9A7 7 0 0 0 7.8 15 4.5 4.5 0 0 0 8 25z" fill="url(#cloudPartGrad)"/>
+    </symbol>
+
+    <symbol id="i-wx-rain" viewBox="0 0 32 32">
+      <defs>
+        <linearGradient id="rainCloudGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#90A4AE"/>
+          <stop offset="100%" stop-color="#455A64"/>
+        </linearGradient>
+        <linearGradient id="dropGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#80D8FF"/>
+          <stop offset="100%" stop-color="#0091EA"/>
+        </linearGradient>
+      </defs>
+      <path d="M8 18h14a5.5 5.5 0 0 0 .5-10.9A7 7 0 0 0 7.8 8 4.5 4.5 0 0 0 8 18z" fill="url(#rainCloudGrad)"/>
+      <g fill="url(#dropGrad)">
+        <path d="M10 22 c0-1.5 2-4 2-4 s2 2.5 2 4 a2 2 0 0 1-4 0z" transform="rotate(-15 12 22)"/>
+        <path d="M16 23 c0-1.5 2-4 2-4 s2 2.5 2 4 a2 2 0 0 1-4 0z" transform="rotate(-15 18 23)"/>
+        <path d="M22 22 c0-1.5 2-4 2-4 s2 2.5 2 4 a2 2 0 0 1-4 0z" transform="rotate(-15 24 22)"/>
+      </g>
+    </symbol>
+
+    <symbol id="i-wx-storm" viewBox="0 0 32 32">
+      <defs>
+        <linearGradient id="stormCloudGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#546E7A"/>
+          <stop offset="100%" stop-color="#263238"/>
+        </linearGradient>
+        <linearGradient id="lightningGrad" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#FFF176"/>
+          <stop offset="100%" stop-color="#FFD600"/>
+        </linearGradient>
+      </defs>
+      <path d="M8 17h14a5.5 5.5 0 0 0 .5-10.9A7 7 0 0 0 7.8 7 4.5 4.5 0 0 0 8 17z" fill="url(#stormCloudGrad)"/>
+      <polygon points="16,16 12,24 16.5,24 14,31 22,21 17.5,21" fill="url(#lightningGrad)"/>
+    </symbol>
+
+    <symbol id="i-wx-snow" viewBox="0 0 32 32">
+      <defs>
+        <linearGradient id="snowCloud" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="#ECEFF1"/>
+          <stop offset="100%" stop-color="#B0BEC5"/>
+        </linearGradient>
+      </defs>
+      <path d="M8 18h14a5.5 5.5 0 0 0 .5-10.9A7 7 0 0 0 7.8 8 4.5 4.5 0 0 0 8 18z" fill="url(#snowCloud)"/>
+      <g stroke="#80D8FF" stroke-width="1.6" stroke-linecap="round">
+        <line x1="12" y1="21" x2="12" y2="25"/><line x1="10" y1="23" x2="14" y2="23"/>
+        <line x1="19" y1="22" x2="19" y2="26"/><line x1="17" y1="24" x2="21" y2="24"/>
+      </g>
+    </symbol>
+
+    <symbol id="i-wx-wind" viewBox="0 0 32 32">
+      <defs>
+        <linearGradient id="windGrad" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stop-color="#5BC0EB"/>
+          <stop offset="100%" stop-color="#00B0FF"/>
+        </linearGradient>
+      </defs>
+      <g stroke="url(#windGrad)" stroke-width="2.2" stroke-linecap="round" fill="none">
+        <path d="M4 11h16a3.5 3.5 0 1 0-3.5-3.5"/>
+        <path d="M2 17h22a3.5 3.5 0 1 1-3.5 3.5"/>
+        <path d="M6 23h12a2.5 2.5 0 1 0-2.5-2.5"/>
+      </g>
+    </symbol>
   </svg>
 
   <!-- Topbar Header -->
   <header class="topbar">
     <div class="topbar-inner">
       <div class="brand">
-        <div class="brand-radar">
-          <div class="radar-sweep-anim"></div>
-          <svg class="icon"><use href="#i-radar"/></svg>
+        <div class="brand-weather-logo">
+          <svg class="brand-wx-icon"><use href="#i-main-weather-brand"/></svg>
         </div>
         <div class="brand-meta">
-          <h1>WeatherGPT <span class="brand-badge">SIH26068</span></h1>
-          <div class="sub">AtmosX · Climate & Early Warning Intelligence</div>
+          <div class="brand-title-row">
+            <h1 class="main-brand-title">weather<span class="brand-gpt-accent">GPT</span></h1>
+          </div>
+          <div class="sub">Rain, wind, UV, Swell, Snow & Pressure Intelligence</div>
         </div>
       </div>
 
       <div class="topbar-actions">
-        <div class="station-badge">
-          <span class="pulse-dot" aria-hidden="true"></span>
-          <span id="statusStationName">Select Station</span>
+        <!-- Live Weather Ambience Pill -->
+        <div class="topbar-weather-pill" id="topbarWeatherPill" title="Current station weather">
+          <span class="live-dot"></span>
+          <span id="topbarWeatherText">Loading telemetry…</span>
         </div>
 
-        <button id="btnInstallPwa" class="pwa-install-btn" type="button" style="display:none;" title="Install WeatherGPT App">
+        <!-- Live language badge -->
+        <span id="langBadge" class="lang-badge" style="display:none;" aria-label="Active language"></span>
+
+        <div class="station-badge location-switcher-badge" id="btnChangeLocation" title="Click to change location">
+          <svg class="icon pin-icon"><use href="#i-pin"/></svg>
+          <span id="statusStationName">Wayanad, Kerala</span>
+          <span class="change-tag">Change</span>
+        </div>
+
+        <button id="btnInstallPwa" class="pwa-install-btn" type="button" style="display:none;" title="Install AtmosX App">
           <svg class="icon"><use href="#i-download"/></svg>
           <span>Install App</span>
         </button>
 
-        <button id="btnOpenSettings" class="btn-icon-top" type="button" title="Settings & Security" aria-label="Open settings">
+        <button id="btnOpenSettings" class="btn-icon-top" type="button" title="Settings & Language" aria-label="Open settings">
           <svg class="icon"><use href="#i-settings"/></svg>
         </button>
       </div>
     </div>
   </header>
 
+  <!-- Floating Quick-Jump Island (Trending Dynamic Island) -->
+  <nav class="floating-nav-island" id="floatingNav" aria-label="Page navigation">
+    <button type="button" class="nav-island-btn active" id="navBtnAi" data-target="aiSection">
+      <svg class="icon"><use href="#i-chat"/></svg>
+      <span>AI Assistant</span>
+    </button>
+    <button type="button" class="nav-island-btn" id="navBtnObservatory" data-target="observatorySection">
+      <svg class="icon"><use href="#i-radar"/></svg>
+      <span>Climate Observatory</span>
+    </button>
+    <button type="button" class="nav-island-btn top-btn" id="btnScrollToTop" title="Back to top">
+      <svg class="icon"><use href="#i-chevron-up"/></svg>
+    </button>
+  </nav>
+
   <!-- Main Application Container -->
   <main class="app-container">
 
-    <!-- SIH Project Disclaimer -->
-    <div class="disclaimer-card">
-      <svg class="icon"><use href="#i-info"/></svg>
-      <div>
-        <strong>Smart India Hackathon Prototype (SIH26068).</strong> Grounded in verified Indian meteorological data feeds and official IMD/WMO warning bulletins with automated RAG consistency verification.
-      </div>
-    </div>
-
-    <!-- Active Warning Alert Banner -->
-    <section class="warning-banner" id="warningBanner" role="alert" aria-live="assertive">
-      <div class="banner-inner">
-        <div class="warning-icon">
-          <svg class="icon"><use href="#i-alert"/></svg>
+    <!-- ======================================================================
+         SECTION 1: NORMAL AI CONVERSATION INTERFACE (TOP HERO)
+         ====================================================================== -->
+    <section id="aiSection" class="ai-hero-section" aria-label="Conversational AI Weather Interface">
+      <div class="ai-hero-header">
+        <div class="ai-hero-badge">
+          <svg class="icon" style="color:var(--accent-amber);"><use href="#i-sparkles"/></svg>
+          <span>Multilingual Climate Intelligence · Real-Time Grounded by Open-Meteo NWP</span>
         </div>
-        <div>
-          <div class="w-badge" id="warnSeverityBadge">Warning Alert</div>
-          <div class="w-headline" id="warnHeadline">Severe alert condition</div>
-          <div class="w-protocol" id="warnProtocol">Follow disaster management procedures.</div>
-          <div class="w-meta" id="warnMeta">IMD Regional Meteorological Centre</div>
+        <h2 class="ai-hero-title">What weather intelligence do you need today?</h2>
+        <p class="ai-hero-desc">Ask in any language — हिन्दी, தமிழ், తెలుగు, മലയാളം, العربية, Français, Español, 日本語, English. Accurate forecasts, storm alerts, and agrometeorological insights.</p>
+      </div>
+
+      <!-- ======================================================================
+           HERO CURRENT WEATHER & TODAY FORECAST BAR (SECTION 10 LAYOUT)
+           ====================================================================== -->
+      <div class="hero-weather-card" id="heroOverviewCard">
+        <div class="hero-weather-main">
+          <div class="hero-weather-left">
+            <div class="hero-loc-row">
+              <svg class="icon pin-icon-hero"><use href="#i-pin"/></svg>
+              <span class="hero-loc-name" id="heroLocationName">Wayanad, Kerala</span>
+              <span class="hero-time-tag" id="heroObsTime">Live</span>
+            </div>
+            <div class="hero-temp-row">
+              <span class="hero-large-temp" id="heroLargeTemp">23°</span>
+              <span class="hero-celsius">C</span>
+              <div class="hero-condition-wrap">
+                <span class="hero-condition-text" id="heroConditionText">Overcast & Rain</span>
+                <span class="hero-feels-text" id="heroFeelsText">Feels like 24°C</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="hero-weather-right">
+            <div class="hero-wx-icon-box">
+              <svg class="hero-big-svg" id="heroConditionSvg"><use href="#i-wx-rain"/></svg>
+            </div>
+            <div class="hero-metrics-pill-grid">
+              <div class="hero-mini-stat" title="Relative Humidity">
+                <svg class="icon"><use href="#i-drop"/></svg>
+                <span id="heroStatHumidity">92% Hum</span>
+              </div>
+              <div class="hero-mini-stat" title="Wind Velocity">
+                <svg class="icon"><use href="#i-wind"/></svg>
+                <span id="heroStatWind">18 km/h</span>
+              </div>
+              <div class="hero-mini-stat" title="Barometric Pressure">
+                <svg class="icon"><use href="#i-layers"/></svg>
+                <span id="heroStatPressure">1008 hPa</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Today's Interactive Forecast Carousel -->
+        <div class="hero-timeline-section">
+          <div class="timeline-header-row">
+            <span class="timeline-title">TODAY'S FORECAST TIMELINE</span>
+            <span class="timeline-sub">Scroll or tap slot for details</span>
+          </div>
+          <div class="hero-hourly-carousel" id="heroHourlyCarousel">
+            <!-- Populated dynamically by app.js -->
+          </div>
         </div>
       </div>
-    </section>
 
-    <!-- Mobile Navigation Switcher Tabs -->
-    <nav class="mobile-nav-tabs" role="tablist" aria-label="Switch panels">
-      <button type="button" id="tabChat" class="active" role="tab" aria-selected="true">
-        <svg class="icon"><use href="#i-chat"/></svg> Chat & Voice
-      </button>
-      <button type="button" id="tabEvidence" role="tab" aria-selected="false">
-        <svg class="icon"><use href="#i-layers"/></svg> Telemetry & Evidence
-      </button>
-    </nav>
 
-    <!-- Side-By-Side Workspace Shell -->
-    <div class="workspace-shell">
+      <!-- Active Warning Alert Banner (If severe alert condition active) -->
+      <section class="warning-banner" id="warningBanner" role="alert" aria-live="assertive">
+        <div class="banner-inner">
+          <div class="warning-icon">
+            <svg class="icon"><use href="#i-alert"/></svg>
+          </div>
+          <div>
+            <div class="w-badge" id="warnSeverityBadge">Warning Alert</div>
+            <div class="w-headline" id="warnHeadline">Severe alert condition</div>
+            <div class="w-protocol" id="warnProtocol">Follow safety protocols immediately.</div>
+            <div class="w-meta" id="warnMeta">Open-Meteo NWP Real-time Feed</div>
+          </div>
+        </div>
+      </section>
 
-      <!-- LEFT COLUMN: CONVERSATION STREAM & VOICE INTERFACE -->
-      <section class="chat-column tab-visible" id="chatColumn" aria-label="WeatherGPT Conversation Stream">
+      <!-- AI Conversational Stream Card -->
+      <div class="ai-chat-card">
         <div class="chat-col-header">
           <div class="chat-col-title">
-            <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-chat"/></svg>
-            <h2>Climate Assistant</h2>
+            <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-chat"/></svg>
+            <h3>Live Conversation Stream</h3>
+            <span class="model-tag-pill">Gemini 2.5 Flash Grounded</span>
           </div>
           <div class="chat-actions">
             <button id="btnClearChat" class="chat-btn-action" type="button" title="Clear conversation">
@@ -134,46 +351,80 @@
           </div>
         </div>
 
+        <!-- AI Voice Speaking Banner (Natural Audio Feedback) -->
+        <div class="ai-speaking-banner" id="aiSpeakingBanner" style="display:none;" aria-live="polite">
+          <div class="spk-left">
+            <span class="spk-robot-icon">🤖</span>
+            <div class="spk-wave-anim" aria-hidden="true">
+              <span class="sw-line"></span>
+              <span class="sw-line"></span>
+              <span class="sw-line"></span>
+              <span class="sw-line"></span>
+            </div>
+            <span class="spk-status-text" id="spkBannerText">AtmosX is speaking...</span>
+          </div>
+          <button type="button" class="btn-stop-speech" id="btnStopSpeechBanner" title="Stop speech playback">
+            <svg class="icon"><use href="#i-close"/></svg>
+            <span>Stop 🔇</span>
+          </button>
+        </div>
+
         <!-- Messages Container -->
         <div class="messages-container" id="messagesContainer">
-          <!-- Empty State / Persona Welcome -->
+          <!-- Welcome / Empty State -->
           <div class="empty-welcome" id="emptyWelcome">
-            <h3>Ask anything regarding weather, safety, or farming.</h3>
-            <p>WeatherGPT resolves your location and intent, checks active IMD alerts, scans uploaded sky photos or documents, and delivers grounded, actionable intelligence.</p>
+            <h3>Ask about weather in any language 🌍</h3>
+            <p>AtmosX understands Hindi, Tamil, Telugu, Malayalam, Arabic, French, Spanish, Japanese, Chinese and 15+ more languages. Just type naturally — I'll reply in your language with live weather data.</p>
 
-            <div class="persona-group-title">Quick Inquiries by Persona</div>
+            <div class="persona-group-title">Trending Inquiries & Quick Prompts</div>
             <div class="prompt-chips-grid">
               <button type="button" class="prompt-chip" data-q="Will it rain heavily in Wayanad district tomorrow?">
                 <svg class="icon"><use href="#i-drop"/></svg>
                 <span><strong>Disaster Alert</strong>: Wayanad rain & landslide risk?</span>
               </button>
+              <button type="button" class="prompt-chip" data-q="कल दिल्ली में मौसम कैसा रहेगा?">
+                <svg class="icon"><use href="#i-temp"/></svg>
+                <span><strong>हिन्दी</strong>: दिल्ली में कल मौसम?</span>
+              </button>
+              <button type="button" class="prompt-chip" data-q="சென்னையில் இன்று மழை பெய்யுமா?">
+                <svg class="icon"><use href="#i-drop"/></svg>
+                <span><strong>தமிழ்</strong>: சென்னை மழை நிலை?</span>
+              </button>
+              <button type="button" class="prompt-chip" data-q="Is there a cyclone warning for Puri right now?">
+                <svg class="icon"><use href="#i-alert"/></svg>
+                <span><strong>Coastal Warning</strong>: Puri cyclone alert?</span>
+              </button>
+              <button type="button" class="prompt-chip" data-q="How intense is the heatwave in Jaipur this week?">
+                <svg class="icon"><use href="#i-temp"/></svg>
+                <span><strong>Urban Safety</strong>: Jaipur heatwave?</span>
+              </button>
               <button type="button" class="prompt-chip" data-q="Can I spray pesticide on my vineyards near Nashik tomorrow morning?">
                 <svg class="icon"><use href="#i-wind"/></svg>
                 <span><strong>Farmer Advisory</strong>: Spray crops near Nashik?</span>
               </button>
-              <button type="button" class="prompt-chip" data-q="Is there a cyclonic storm or surge warning for Puri right now?">
-                <svg class="icon"><use href="#i-alert"/></svg>
-                <span><strong>Coastal Warning</strong>: Puri cyclone landfall?</span>
+              <button type="button" class="prompt-chip" data-q="مومباي میں آج کا موسم کیسا ہے؟">
+                <svg class="icon"><use href="#i-globe"/></svg>
+                <span><strong>اردو / مراٹھی</strong>: مومبئی موسم؟</span>
               </button>
-              <button type="button" class="prompt-chip" data-q="How intense is the heatwave in Jaipur this week?">
-                <svg class="icon"><use href="#i-temp"/></svg>
-                <span><strong>Urban Safety</strong>: Heatwave severity in Jaipur?</span>
+              <button type="button" class="prompt-chip" data-q="What causes atmospheric depressions and how do they form?">
+                <svg class="icon"><use href="#i-info"/></svg>
+                <span><strong>Weather Science</strong>: How do depressions form?</span>
               </button>
             </div>
           </div>
         </div>
 
-        <!-- Real-Time Voice Waveform Animation Bar -->
+        <!-- Real-Time Voice Waveform -->
         <div class="waveform-container" id="waveformContainer">
           <div class="waveform-meta">
-            <span class="pulse-dot" style="background:var(--neon-red);" aria-hidden="true"></span>
-            <span id="waveformText">Listening to speech…</span>
+            <span class="pulse-dot" style="background:var(--accent-red);" aria-hidden="true"></span>
+            <span id="waveformText">Listening… speak in any language</span>
           </div>
           <canvas id="waveformCanvas" class="waveform-canvas" width="140" height="24"></canvas>
-          <button id="btnStopVoice" class="btn-secondary" style="padding: 4px 10px; font-size: 11.5px;" type="button">Stop</button>
+          <button id="btnStopVoice" class="btn-secondary" style="padding:4px 10px;font-size:11.5px;" type="button">Stop</button>
         </div>
 
-        <!-- Composer File Attachment Preview Chip -->
+        <!-- Composer File Attachment Preview -->
         <div class="composer-attachment-preview" id="composerAttachmentPreview">
           <div class="attachment-info">
             <img id="attachmentThumb" class="attachment-thumb" src="" alt="Thumbnail" style="display:none;">
@@ -186,17 +437,23 @@
 
         <!-- Composer Bar -->
         <div class="composer-bar">
-          <button id="btnUploadTrigger" class="btn-composer-icon" type="button" title="Upload Sky Photo or Weather Bulletin Document" aria-label="Upload photo or document">
+          <button id="btnCameraTrigger" class="btn-composer-icon" type="button" title="Live Sky & Atmospheric Camera" aria-label="Open sky camera">
             <svg class="icon"><use href="#i-camera"/></svg>
           </button>
 
-          <button id="btnVoiceTrigger" class="btn-composer-icon btn-composer-voice" type="button" title="Voice Input (Speech-to-Text)" aria-label="Toggle voice input">
+          <button id="btnDocUploadTrigger" class="btn-composer-icon" type="button" title="Upload Weather Documents & Data (PDF, CSV, TXT, Images)" aria-label="Upload weather documents or data">
+            <svg class="icon"><use href="#i-document"/></svg>
+          </button>
+
+          <button id="btnVoiceTrigger" class="btn-composer-icon btn-composer-voice" type="button" title="Voice input — speaks any language" aria-label="Toggle voice input">
             <svg class="icon"><use href="#i-mic"/></svg>
           </button>
 
           <div class="composer-input-wrap">
-            <input id="inputPrompt" class="composer-input" type="text" placeholder="Ask about weather, a warning, or crop decision…" maxlength="280" autocomplete="off" spellcheck="false" aria-label="Enter question">
-            <span class="composer-char-count" id="charCount">280</span>
+            <textarea id="inputPrompt" class="composer-input" rows="1"
+              placeholder="Ask in any language — हिन्दी, தமிழ், العربية, Français…"
+              maxlength="400" autocomplete="off" spellcheck="false" aria-label="Enter question in any language"></textarea>
+            <span class="composer-char-count" id="charCount">400</span>
           </div>
 
           <button id="btnSend" class="btn-send-main" type="button" aria-label="Send query">
@@ -204,111 +461,834 @@
             <svg class="icon"><use href="#i-send"/></svg>
           </button>
         </div>
-      </section>
+      </div>
 
-      <!-- RIGHT COLUMN: TELEMETRY & EVIDENCE OBSERVATORY -->
-      <section class="evidence-column" id="evidenceColumn" aria-label="Meteorological Telemetry and Grounding Observatory">
-        <div class="ev-header">
-          <h3>Climate Observatory</h3>
-          <div class="rag-pipeline" aria-label="Grounding Pipeline">
-            <span class="pipeline-step" data-step="understand">1. Understand</span>
-            <span class="pipeline-step" data-step="ground">2. Ground</span>
-            <span class="pipeline-step" data-step="act">3. Act</span>
+      <!-- Quick Scroll Indicator to Observatory -->
+      <div class="scroll-down-wrapper">
+        <button type="button" class="btn-scroll-observatory" id="btnJumpObservatory">
+          <span class="scroll-label">Scroll to Climate Observatory & Surface Telemetry</span>
+          <svg class="icon bounce-icon"><use href="#i-chevron-down"/></svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- ======================================================================
+         SECTION 2: CLIMATE OBSERVATORY & SURFACE TELEMETRY (SCROLL DOWN)
+         ====================================================================== -->
+    <section id="observatorySection" class="observatory-section" aria-label="Meteorological Telemetry Observatory">
+      <div class="observatory-section-header">
+        <div class="obs-title-group">
+          <div class="obs-live-badge-wrap">
+            <div class="obs-badge" id="obsLiveStatusBadge">
+              <span class="pulse-dot" id="obsPulseDot" aria-hidden="true"></span>
+              <span id="obsLiveStatusLabel">LIVE</span>
+            </div>
+            <span class="obs-freshness-meta" id="obsFreshnessText">Updated just now</span>
+            <span class="obs-exact-time" id="obsExactTime"></span>
           </div>
+          <h2 class="obs-title">Climate Observatory & Atmospheric Metrics</h2>
+          <p class="obs-sub">Real-Time Doppler Radar, Barometric Pressure, Precipitation Waves, Wind Vectors & Pollutant Analysis</p>
         </div>
 
-        <!-- Station Quick Selector Dropdown -->
+        <!-- RAG Pipeline Steps -->
+        <div class="rag-pipeline" aria-label="AI Reasoning Pipeline">
+          <span class="pipeline-step" data-step="understand">1. Understand</span>
+          <span class="pipeline-step" data-step="ground">2. Ground</span>
+          <span class="pipeline-step" data-step="act">3. Act</span>
+        </div>
+      </div>
+
+      <!-- Telemetry Control Bar -->
+      <div class="dash-hero-bar">
         <div class="station-selector-wrap">
-          <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-radar"/></svg>
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-radar"/></svg>
           <select id="stationSelect" class="station-select" aria-label="Select meteorological station">
-            <!-- Dynamically populated from weather_data.js -->
+            <!-- Populated from weather_data.js -->
           </select>
         </div>
 
-        <!-- Live Telemetry Gauges Grid -->
-        <div class="telemetry-grid">
-          <div class="gauge-card">
-            <div class="gauge-top">
-              <span>Temperature</span>
-              <svg class="icon"><use href="#i-temp"/></svg>
+        <!-- Hero Condition Pill -->
+        <div class="dash-condition-pill" id="dashConditionPill">
+          <svg class="wx-hero-icon" id="heroWxIcon"><use href="#i-wx-rain"/></svg>
+          <div class="hero-pill-texts">
+            <span class="hero-status-title" id="valCondition">Keeps Raining</span>
+            <span class="hero-temp-range" id="valTempRange">24° / 22°</span>
+          </div>
+          <div class="hero-cur-temp" id="valTemp">22°C</div>
+        </div>
+      </div>
+
+      <!-- WEATHER PULSE: LIVE INTELLIGENCE (Derived strictly from verified hourly observations) -->
+      <div class="weather-pulse-card" id="weatherPulseCard">
+        <div class="wp-card-header">
+          <div class="wp-header-left">
+            <span class="wp-icon-emoji" id="wpEmoji">🌦️</span>
+            <div>
+              <div class="wp-badge-tag">WEATHER PULSE · REAL-TIME INTELLIGENCE</div>
+              <h3 class="wp-main-statement" id="wpMainStatement">Waiting for enough live data to detect a trend.</h3>
             </div>
-            <div class="gauge-value" id="valTemp">--°C</div>
-            <div class="gauge-sub" id="valTempSub">Surface sensor</div>
+          </div>
+          <div class="wp-header-right">
+            <div class="wp-comp-badge" id="wpCompBadge">Comparing observations</div>
+            <div class="wp-timestamp" id="wpTimestamp">Updated --:--</div>
+          </div>
+        </div>
+        <div class="wp-metrics-row">
+          <div class="wp-delta-chip" id="wpChipTemp">
+            <span class="wp-chip-icon">🌡️</span>
+            <span class="wp-chip-label">Temperature:</span>
+            <span class="wp-chip-val" id="wpValTemp">Steady</span>
+          </div>
+          <div class="wp-delta-chip" id="wpChipHumidity">
+            <span class="wp-chip-icon">💧</span>
+            <span class="wp-chip-label">Humidity:</span>
+            <span class="wp-chip-val" id="wpValHumidity">Steady</span>
+          </div>
+          <div class="wp-delta-chip" id="wpChipPressure">
+            <span class="wp-chip-icon">⏲️</span>
+            <span class="wp-chip-label">Barometer:</span>
+            <span class="wp-chip-val" id="wpValPressure">Steady</span>
+          </div>
+          <div class="wp-delta-chip" id="wpChipRain">
+            <span class="wp-chip-icon">🌧️</span>
+            <span class="wp-chip-label">Rain Trend:</span>
+            <span class="wp-chip-val" id="wpValRain">Low chance</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Observatory Dashboard Grid -->
+      <div class="observatory-grid">
+
+        <!-- Atmospheric Pressure Barometer Card (UPGRADED WITH DETAILS) -->
+        <div class="glass-widget-card pressure-banner-card" id="pressureWidgetCard">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-layers"/></svg>
+              <span>Atmospheric Pressure</span>
+            </div>
+            <div class="widget-header-actions">
+              <span class="pressure-badge" id="valPressureBadge">Stable</span>
+              <button type="button" class="btn-widget-detail" id="btnOpenPressureDetails" title="View detailed pressure analysis">
+                <svg class="icon"><use href="#i-info"/></svg>
+                <span>Details</span>
+              </button>
+            </div>
+          </div>
+          <div class="pressure-meter-row">
+            <div class="pressure-val-wrap">
+              <span class="pressure-num" id="valPressure">1012.0</span>
+              <span class="pressure-unit">hPa</span>
+              <div class="pressure-tendency" id="valPressureTendency">Steady (±0.0 hPa/3h)</div>
+            </div>
+            <div class="pressure-scale-bar">
+              <div class="scale-track">
+                <div class="scale-marker" id="pressureScaleMarker" style="left:52%;"></div>
+              </div>
+              <div class="scale-labels">
+                <span>980 Low (Depression)</span>
+                <span>1013 Standard</span>
+                <span>1040 High (Anticyclone)</span>
+              </div>
+            </div>
+          </div>
+          <!-- 24H Mini Pressure Sparkline -->
+          <div class="pressure-sparkline-wrap">
+            <div class="sparkline-title-row">
+              <span>24-Hour Barometric Curve</span>
+              <span id="pressureRangeLabel">1008 - 1014 hPa</span>
+            </div>
+            <svg class="pressure-sparkline-svg" id="pressureSparklineSvg" viewBox="0 0 400 45" preserveAspectRatio="none">
+              <path id="pressureSparklinePath" d="M0,22 L400,22" fill="none" stroke="var(--accent-cyan)" stroke-width="2.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Dynamic Rainfall Wave Card (UPGRADED WITH DETAILS & DUAL MODE) -->
+        <div class="glass-widget-card rainfall-card" id="rainfallWaveCard">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-drop"/></svg>
+              <span>Precipitation Trend</span>
+            </div>
+            <div class="widget-header-actions">
+              <div class="rain-mode-toggle" id="rainModeToggle">
+                <button type="button" class="btn-toggle-rain active" id="btnRainModeMm" data-mode="mm">Amount (mm)</button>
+                <button type="button" class="btn-toggle-rain" id="btnRainModeProb" data-mode="prob">Chance (%)</button>
+              </div>
+              <span class="rainfall-accum-badge" id="valRainAccumBadge">0.0 mm / 24h</span>
+              <button type="button" class="btn-widget-detail" id="btnOpenPrecipDetails" title="View 24h hour-by-hour precipitation breakdown">
+                <svg class="icon"><use href="#i-info"/></svg>
+                <span>Details</span>
+              </button>
+            </div>
+          </div>
+          
+          <div class="rainfall-chart-container" id="rainfallChartBox">
+            <svg class="rainfall-svg" id="rainfallSvg" viewBox="0 0 400 130" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="rainWaveGrad" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#5BC0EB" stop-opacity="0.28"/>
+                  <stop offset="60%" stop-color="#3E92CC" stop-opacity="0.12"/>
+                  <stop offset="100%" stop-color="#101B27" stop-opacity="0.0"/>
+                </linearGradient>
+                <linearGradient id="rainStrokeGrad" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0%" stop-color="#5BC0EB"/>
+                  <stop offset="50%" stop-color="#80D8FF"/>
+                  <stop offset="100%" stop-color="#3E92CC"/>
+                </linearGradient>
+              </defs>
+              <!-- Grid lines -->
+              <line x1="0" y1="35" x2="400" y2="35" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
+              <line x1="0" y1="75" x2="400" y2="75" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
+              <line x1="0" y1="110" x2="400" y2="110" stroke="rgba(255,255,255,0.06)" stroke-dasharray="3 3"/>
+
+              <!-- Filled Wave Area -->
+              <path id="rainWaveArea" d="M0,110 L400,110 L400,120 L0,120 Z" fill="url(#rainWaveGrad)"/>
+              <!-- Wave Line -->
+              <path id="rainWaveLine" d="M0,110 L400,110" fill="none" stroke="url(#rainStrokeGrad)" stroke-width="2.6" stroke-linecap="round"/>
+
+              <!-- Interactive Scrubber Line -->
+              <line id="rainScrubberLine" x1="200" y1="10" x2="200" y2="120" stroke="rgba(91,192,235,0.6)" stroke-width="1.5" stroke-dasharray="2 2" style="display:none;"/>
+              <!-- Active Scrubber Point -->
+              <circle id="rainScrubberPoint" cx="200" cy="110" r="5" fill="#FFFFFF" stroke="#3E92CC" stroke-width="2.5" style="filter:drop-shadow(0 0 6px rgba(91,192,235,0.8));"/>
+            </svg>
+
+            <!-- Floating Scrubber Tooltip -->
+            <div class="chart-tooltip" id="rainChartTooltip" style="display:none;">
+              <div class="tooltip-time" id="tooltipTime">14:00</div>
+              <div class="tooltip-val" id="tooltipVal">0.0 mm · 10% chance</div>
+            </div>
+            
+            <div class="rain-time-labels">
+              <span>00:00</span>
+              <span>04:00</span>
+              <span>08:00</span>
+              <span>12:00</span>
+              <span>16:00</span>
+              <span>20:00</span>
+              <span>23:00</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4-Gauge Circular Telemetry Grid -->
+        <div class="dash-gauges-grid">
+          
+          <!-- Gauge 1: Wind Compass -->
+          <div class="glass-widget-card circular-gauge-card">
+            <div class="gauge-card-header">
+              <span class="gauge-name">Wind Speed</span>
+              <span class="gauge-badge" id="valWindDirBadge">WSW</span>
+            </div>
+            <div class="compass-visual-wrap">
+              <svg class="compass-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="44" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="3"/>
+                <circle cx="50" cy="50" r="44" fill="none" stroke="url(#windGrad)" stroke-width="3" stroke-dasharray="276" stroke-dashoffset="130" stroke-linecap="round"/>
+                <circle cx="50" cy="50" r="34" fill="rgba(10,32,50,0.6)"/>
+                <!-- Cardinal Points -->
+                <text x="50" y="20" font-size="9" font-weight="700" fill="#5BC0EB" text-anchor="middle" dominant-baseline="central">N</text>
+                <text x="81" y="50" font-size="8" font-weight="600" fill="rgba(255,255,255,0.45)" text-anchor="middle" dominant-baseline="central">E</text>
+                <text x="50" y="80" font-size="8" font-weight="600" fill="rgba(255,255,255,0.45)" text-anchor="middle" dominant-baseline="central">S</text>
+                <text x="19" y="50" font-size="8" font-weight="600" fill="rgba(255,255,255,0.45)" text-anchor="middle" dominant-baseline="central">W</text>
+                <!-- Centered Compass Needle (Local origin at 50,50 center of dial) -->
+                <g transform="translate(50, 50)">
+                  <g id="gaugeWindNeedle" class="compass-needle" transform="rotate(240)">
+                    <polygon points="0,-23 -3.5,0 3.5,0" fill="#F26464"/>
+                    <polygon points="0,23 -3.5,0 3.5,0" fill="rgba(220, 235, 250, 0.75)"/>
+                    <circle cx="0" cy="0" r="3.5" fill="#FFFFFF" stroke="#162434" stroke-width="1"/>
+                    <circle cx="0" cy="0" r="1.5" fill="#F26464"/>
+                  </g>
+                </g>
+              </svg>
+            </div>
+            <div class="gauge-card-footer">
+              <span class="gauge-big-val" id="valWind">18</span>
+              <span class="gauge-val-unit">km/h</span>
+              <div class="gauge-sub-caption" id="valWindSub">Heading: WSW</div>
+            </div>
           </div>
 
-          <div class="gauge-card">
-            <div class="gauge-top">
-              <span>Humidity</span>
-              <svg class="icon"><use href="#i-drop"/></svg>
+          <!-- Gauge 2: Feels-Like Dial -->
+          <div class="glass-widget-card circular-gauge-card">
+            <div class="gauge-card-header">
+              <span class="gauge-name">Thermal Index</span>
+              <span class="gauge-badge">Apparent</span>
             </div>
-            <div class="gauge-value" id="valHumidity">--%</div>
-            <div class="gauge-sub">Relative moisture</div>
+            <div class="compass-visual-wrap">
+              <svg class="compass-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
+                <circle id="ringFeelsLike" cx="50" cy="50" r="38" fill="none" stroke="#F6AE2D" stroke-width="7"
+                  stroke-dasharray="238.7" stroke-dashoffset="100" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="28" fill="rgba(10,32,50,0.5)"/>
+                <text x="50" y="55" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="valFeelsLike">23°</text>
+              </svg>
+            </div>
+            <div class="gauge-card-footer">
+              <span class="gauge-big-val" id="valTempSub">Actual 22°C</span>
+              <div class="gauge-sub-caption" id="valHumidity">88% Humidity</div>
+            </div>
           </div>
 
-          <div class="gauge-card">
-            <div class="gauge-top">
-              <span>Barometer</span>
+          <!-- Gauge 3: Visibility Arc -->
+          <div class="glass-widget-card circular-gauge-card">
+            <div class="gauge-card-header">
+              <span class="gauge-name">Visibility</span>
+              <span class="gauge-badge" id="valVisibilityStatus">Optimal</span>
+            </div>
+            <div class="compass-visual-wrap">
+              <svg class="compass-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
+                <circle id="ringVisibility" cx="50" cy="50" r="38" fill="none" stroke="#48CA9B" stroke-width="7"
+                  stroke-dasharray="238.7" stroke-dashoffset="40" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="28" fill="rgba(10,32,50,0.5)"/>
+                <text x="50" y="55" font-size="13" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="valVisibility">10 km</text>
+              </svg>
+            </div>
+            <div class="gauge-card-footer">
+              <span class="gauge-big-val" id="valVisibilityDesc">Surface Clear</span>
+              <div class="gauge-sub-caption" id="valVisibilitySub">Optical Sight: 10.0 km</div>
+            </div>
+          </div>
+
+          <!-- Gauge 4: Precipitation Droplet Ring -->
+          <div class="glass-widget-card circular-gauge-card">
+            <div class="gauge-card-header">
+              <span class="gauge-name">Precipitation</span>
+              <span class="gauge-badge">Real-Time</span>
+            </div>
+            <div class="compass-visual-wrap">
+              <svg class="compass-svg" viewBox="0 0 100 100">
+                <circle cx="50" cy="50" r="38" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="7"/>
+                <circle id="ringPrecip" cx="50" cy="50" r="38" fill="none" stroke="#3E92CC" stroke-width="7"
+                  stroke-dasharray="238.7" stroke-dashoffset="180" stroke-linecap="round" transform="rotate(-90 50 50)"/>
+                <circle cx="50" cy="50" r="28" fill="rgba(10,32,50,0.5)"/>
+                <text x="50" y="55" font-size="14" font-weight="700" fill="#5BC0EB" text-anchor="middle" id="valRain">0.0</text>
+              </svg>
+            </div>
+            <div class="gauge-card-footer">
+              <span class="gauge-big-val" id="valRainDesc">0.0 mm/h</span>
+              <div class="gauge-sub-caption" id="valRainSub">No Active Fall</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Air Quality Index Widget -->
+        <div class="glass-widget-card aqi-matrix-card" id="dashAqiCard">
+          <div class="widget-header">
+            <div class="widget-title">
               <svg class="icon"><use href="#i-layers"/></svg>
+              <span>Atmospheric Quality Matrix</span>
             </div>
-            <div class="gauge-value" id="valPressure">---- hPa</div>
-            <div class="gauge-sub">Atmospheric pressure</div>
+            <span class="aqi-category-badge" id="valAqiStatus">Good</span>
           </div>
 
-          <div class="gauge-card">
-            <div class="gauge-top">
-              <span>Wind Speed</span>
-              <svg class="icon"><use href="#i-wind"/></svg>
+          <div class="aqi-card-body">
+            <div class="aqi-score-donut">
+              <svg viewBox="0 0 80 80">
+                <circle cx="40" cy="40" r="32" fill="none" stroke="rgba(255,255,255,0.08)" stroke-width="6"/>
+                <circle id="ringAqiScore" cx="40" cy="40" r="32" fill="none" stroke="var(--accent-emerald)" stroke-width="6"
+                  stroke-dasharray="201" stroke-dashoffset="60" stroke-linecap="round" transform="rotate(-90 40 40)"/>
+                <text x="40" y="44" font-size="16" font-weight="700" fill="#FFFFFF" text-anchor="middle" id="valAqi">38</text>
+                <text x="40" y="56" font-size="8" fill="var(--text-soft)" text-anchor="middle">US AQI</text>
+              </svg>
             </div>
-            <div class="gauge-value" id="valWind">-- km/h</div>
-            <div class="gauge-sub" id="valWindSub">Heading: --</div>
+
+            <div class="pollutants-grid">
+              <div class="pollutant-chip">
+                <span class="p-name">PM2.5</span>
+                <span class="p-val" id="polPM25">8.4 µg/m³</span>
+              </div>
+              <div class="pollutant-chip">
+                <span class="p-name">PM10</span>
+                <span class="p-val" id="polPM10">16.2 µg/m³</span>
+              </div>
+              <div class="pollutant-chip">
+                <span class="p-name">SO₂</span>
+                <span class="p-val" id="polSO2">2.1 µg/m³</span>
+              </div>
+              <div class="pollutant-chip">
+                <span class="p-name">NO₂</span>
+                <span class="p-val" id="polNO2">12.5 µg/m³</span>
+              </div>
+              <div class="pollutant-chip">
+                <span class="p-name">O₃</span>
+                <span class="p-val" id="polO3">45.0 µg/m³</span>
+              </div>
+              <div class="pollutant-chip">
+                <span class="p-name">CO</span>
+                <span class="p-val" id="polCO">210 µg/m³</span>
+              </div>
+            </div>
+          </div>
+          <div class="aqi-footer-note" id="valAqiSub">Air quality is ideal for most individuals; enjoy outdoor activities.</div>
+        </div>
+
+        <!-- Interactive Hourly Forecast Card -->
+        <div class="glass-widget-card hourly-card" id="dashHourlyCard">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon"><use href="#i-radar"/></svg>
+              <span>Hourly Forecast</span>
+            </div>
+            <span class="hourly-range-badge">Next 24 Hours</span>
           </div>
 
-          <div class="gauge-card">
-            <div class="gauge-top">
-              <span>Rainfall</span>
-              <svg class="icon"><use href="#i-drop"/></svg>
+          <div class="hourly-scroll-track" id="hourlyScrollTrack">
+            <!-- Hourly items populated by app.js -->
+            <div class="hourly-slot">
+              <span class="slot-time">Now</span>
+              <svg class="slot-icon"><use href="#i-wx-rain"/></svg>
+              <span class="slot-rain">90%</span>
+              <span class="slot-temp">22°</span>
+              <span class="slot-wind">18 km/h</span>
             </div>
-            <div class="gauge-value" id="valRain">-- mm</div>
-            <div class="gauge-sub">Surface accumulation</div>
-          </div>
-
-          <div class="gauge-card">
-            <div class="gauge-top">
-              <span>Air Quality</span>
-              <svg class="icon"><use href="#i-shield"/></svg>
-            </div>
-            <div class="gauge-value" id="valAqi">-- AQI</div>
-            <div class="gauge-sub" id="valAqiSub">Environmental index</div>
           </div>
         </div>
 
-        <!-- Grounding Confidence Bar -->
-        <div class="confidence-block">
-          <div class="confidence-header">
-            <span>Grounding Provenance Confidence</span>
-            <span id="confidenceLabel">Unresolved (0%)</span>
+        <!-- UV Index & Solar Exposure Intelligence Widget -->
+        <div class="glass-widget-card solar-uv-card" id="dashSolarUvCard" role="button" tabindex="0" title="Click for UV & Solar Exposure Breakdown">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon" style="color:var(--accent-amber);"><use href="#i-wx-sun"/></svg>
+              <span>UV Index & Solar Exposure</span>
+            </div>
+            <div class="widget-header-actions">
+              <span class="uv-category-badge" id="valUvBadge">Low</span>
+              <button type="button" class="btn-widget-detail" id="btnOpenUvDetails" title="View UV and sun exposure details">
+                <svg class="icon"><use href="#i-info"/></svg> <span>Details</span>
+              </button>
+            </div>
           </div>
-          <div class="confidence-track">
-            <div class="confidence-fill" id="confidenceFill" style="width: 15%;"></div>
+
+          <div class="solar-card-body">
+            <!-- Left: UV Score & WHO Meter -->
+            <div class="uv-score-col">
+              <div class="uv-val-num" id="valUvIndex">0.0</div>
+              <span class="uv-scale-title">Current UV Index</span>
+              <span class="uv-max-note" id="valUvMax">Max: 8.4 Today</span>
+              <div class="uv-meter-bar-wrap" title="WHO UV Radiation Scale">
+                <div class="uv-meter-bar-fill" id="valUvMeterFill" style="width: 0%;"></div>
+              </div>
+            </div>
+
+            <!-- Right: Solar Ephemeris Grid -->
+            <div class="solar-ephemeris-grid">
+              <div class="solar-mini-stat">
+                <span class="stat-icon">🌅</span>
+                <div class="stat-meta">
+                  <span class="stat-lbl">Sunrise</span>
+                  <span class="stat-val" id="valSunrise">12:21 PM</span>
+                </div>
+              </div>
+              <div class="solar-mini-stat">
+                <span class="stat-icon">🌇</span>
+                <div class="stat-meta">
+                  <span class="stat-lbl">Sunset</span>
+                  <span class="stat-val" id="valSunset">--:--</span>
+                </div>
+              </div>
+              <div class="solar-mini-stat">
+                <span class="stat-icon">☀️</span>
+                <div class="stat-meta">
+                  <span class="stat-lbl">Solar Noon</span>
+                  <span class="stat-val" id="valSolarNoon">--:--</span>
+                </div>
+              </div>
+              <div class="solar-mini-stat">
+                <span class="stat-icon">⏱️</span>
+                <div class="stat-meta">
+                  <span class="stat-lbl">Day Length</span>
+                  <span class="stat-val" id="valDayLength">12h 14m</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Solar Progression Arc / Daylight Status -->
+          <div class="solar-progress-section">
+            <div class="solar-progress-header">
+              <span class="sp-title" id="valSolarProgressLabel">Daylight Phase</span>
+              <span class="sp-percent" id="valSolarProgressPercent">52%</span>
+            </div>
+            <div class="solar-progress-track">
+              <div class="solar-progress-fill" id="valSolarProgressFill" style="width: 0%;"></div>
+              <div class="solar-sun-pin" id="valSolarSunPin" style="left: 0%;">☀️</div>
+            </div>
+            <div class="solar-progress-labels">
+              <span class="sp-lbl-start" id="valSolarDawnLbl">Dawn</span>
+              <span class="sp-lbl-mid" id="valSolarPeakLbl">Zenith Peak</span>
+              <span class="sp-lbl-end" id="valSolarDuskLbl">Dusk</span>
+            </div>
+          </div>
+
+          <div class="solar-footer-advice" id="valUvAdvice">Nighttime / minimal UV radiation detected. Safe outdoors without UV protection.</div>
+        </div>
+
+        <!-- Simulated Weather Radar Card -->
+        <div class="glass-widget-card radar-sim-card" id="dashRadarCard">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-radar"/></svg>
+              <span>Atmospheric Model Simulation · NWP Forecast Field</span>
+            </div>
+            <div class="radar-layer-toggles">
+              <button type="button" class="radar-layer-btn active" data-layer="precip">Rain</button>
+              <button type="button" class="radar-layer-btn" data-layer="wind">Wind</button>
+              <button type="button" class="radar-layer-btn" data-layer="temp">Thermal</button>
+            </div>
+          </div>
+
+          <div class="radar-viewport">
+            <canvas id="radarCanvas" width="700" height="340"></canvas>
+            
+            <!-- Top HUD Bar: Location Coordinates & Simulation Mode Status -->
+            <div class="radar-hud-top">
+              <div class="radar-hud-badge radar-coord-badge">
+                <svg class="icon-xs" style="width:12px;height:12px;display:inline-block;vertical-align:middle;margin-right:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg>
+                <span class="radar-coord" id="radarCoord">11.68°N, 76.13°E</span>
+                <span class="radar-range-label">· 100km Range</span>
+              </div>
+              <div class="radar-hud-badge radar-status-badge">
+                <span class="radar-pulse-dot"></span>
+                <span class="radar-status-tag" id="radarStatusTag">NWP FORECAST FIELD</span>
+              </div>
+            </div>
+
+            <!-- Bottom HUD Bar: Active Telemetry Info & Playback Controls -->
+            <div class="radar-hud-bottom">
+              <div class="radar-hud-badge radar-telemetry-badge" id="radarTelemetryBadge">
+                <span class="radar-telemetry-icon" id="radarTelemetryIcon">📡</span>
+                <span class="radar-live-info" id="radarLiveInfo">Initializing NWP Radar...</span>
+              </div>
+              <div class="radar-hud-controls">
+                <button type="button" class="radar-hud-btn" id="btnToggleRadarPlay" title="Pause / Resume Sweep Animation" aria-label="Pause or Resume Radar">⏸ Pause</button>
+                <button type="button" class="radar-hud-btn" id="btnToggleRadarSpeed" title="Cycle Radar Speed" aria-label="Radar Speed">1x</button>
+              </div>
+            </div>
           </div>
         </div>
 
-        <!-- Dynamic Evidence Cards Stack -->
-        <div id="evidenceBody" style="display:flex; flex-direction:column; gap:12px;">
-          <!-- Populated by app.js -->
+        <!-- Best Time Today Recommendation Card -->
+        <div class="glass-widget-card best-time-card" id="dashBestTimeCard">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon" style="color:var(--accent-amber);"><use href="#i-sun"/></svg>
+              <span>Best Time Today · Activity Windows</span>
+            </div>
+            <span class="activity-optimal-badge" id="valBestTimeBadge">Ideal Window</span>
+          </div>
+          <div class="best-time-body">
+            <div class="best-window-highlight">
+              <div class="highlight-time-box">
+                <span class="highlight-label">OPTIMAL OUTDOOR WINDOW</span>
+                <div class="highlight-time" id="valOptimalWindow">06:00 – 09:30</div>
+              </div>
+              <div class="highlight-reason" id="valOptimalReason">Analyzing hourly rain probabilities, UV index, and thermal comfort...</div>
+            </div>
+            <div class="day-segments-grid">
+              <div class="segment-pill" id="segMorning">
+                <div class="segment-title">Morning (06:00 – 12:00)</div>
+                <div class="segment-condition" id="valMorningCond">Optimal</div>
+                <div class="segment-meta" id="valMorningMeta">--°C · --% Rain</div>
+              </div>
+              <div class="segment-pill" id="segAfternoon">
+                <div class="segment-title">Afternoon (12:00 – 17:00)</div>
+                <div class="segment-condition" id="valAfternoonCond">Warm</div>
+                <div class="segment-meta" id="valAfternoonMeta">--°C · --% Rain</div>
+              </div>
+              <div class="segment-pill" id="segEvening">
+                <div class="segment-title">Evening (17:00 – 22:00)</div>
+                <div class="segment-condition" id="valEveningCond">Pleasant</div>
+                <div class="segment-meta" id="valEveningMeta">--°C · --% Rain</div>
+              </div>
+            </div>
+          </div>
         </div>
-      </section>
 
-    </div>
+        <!-- Real-Time Weather Impact & Advisory Card -->
+        <div class="glass-widget-card weather-impact-card" id="dashWeatherImpactCard">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-shield"/></svg>
+              <span>Daily Weather Impact & Practical Advisory</span>
+            </div>
+            <span class="gauge-badge" id="valImpactOverallBadge">Normal</span>
+          </div>
+          <div class="weather-impact-grid">
+            <div class="impact-item">
+              <div class="impact-item-header">
+                <span class="impact-icon">🚗</span>
+                <span class="impact-title">Travel & Commute</span>
+              </div>
+              <div class="impact-desc" id="valImpactCommute">Evaluating road conditions and visibility...</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-item-header">
+                <span class="impact-icon">🏃</span>
+                <span class="impact-title">Outdoor Fitness</span>
+              </div>
+              <div class="impact-desc" id="valImpactFitness">Evaluating temperature stress and precipitation...</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-item-header">
+                <span class="impact-icon">🫁</span>
+                <span class="impact-title">Respiratory & Air</span>
+              </div>
+              <div class="impact-desc" id="valImpactAir">Evaluating particulate index and allergen dispersal...</div>
+            </div>
+            <div class="impact-item">
+              <div class="impact-item-header">
+                <span class="impact-icon">☀️</span>
+                <span class="impact-title">Sun & Skin Care</span>
+              </div>
+              <div class="impact-desc" id="valImpactSun">Evaluating UV radiation peak hours...</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grounding Confidence & Telemetry Evidence Card -->
+        <div class="glass-widget-card evidence-stream-card">
+          <div class="widget-header">
+            <div class="widget-title">
+              <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-shield"/></svg>
+              <span>NWP Model Verification & Grounding Telemetry</span>
+            </div>
+            <div class="confidence-block-inline">
+              <span class="confidence-label" id="confidenceLabel">Live Grounded (92%)</span>
+              <div class="confidence-track">
+                <div class="confidence-fill" id="confidenceFill" style="width:92%;"></div>
+              </div>
+            </div>
+          </div>
+          <div id="evidenceBody" style="display:flex;flex-direction:column;gap:12px;margin-top:12px;">
+            <div class="evidence-card" id="liveForecastEvidence">
+              <div class="ev-card-label forecast">🛰️ Live Feed — Open-Meteo</div>
+              <div class="ev-card-body">Connecting to Open-Meteo NWP meteorological telemetry...</div>
+              <div class="ev-card-source">Real-time WMO Grounding</div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
   </main>
 
-  <!-- UPLOAD & WEATHER SCANNER MODAL -->
+  <!-- ======================================================================
+       MODALS: VISION SCANNER, SETTINGS, AND TELEMETRY DETAILS
+       ====================================================================== -->
+
+  <!-- ATMOSPHERIC PRESSURE DETAIL INSPECTION MODAL -->
+  <div class="modal-overlay" id="modalPressureDetails" role="dialog" aria-modal="true" aria-labelledby="pressureModalTitle" style="display:none;">
+    <div class="modal-content modal-detail-content">
+      <div class="modal-header">
+        <h3 id="pressureModalTitle">
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-layers"/></svg>
+          Atmospheric Pressure & Barometric Telemetry
+        </h3>
+        <button class="btn-modal-close" id="btnClosePressureModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-summary-grid">
+          <div class="detail-metric-card">
+            <span class="d-label">Mean Sea-Level Pressure (MSL)</span>
+            <span class="d-val" id="detailMslPressure">-- hPa</span>
+            <span class="d-sub">Standard Reference: 1013.25 hPa</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Local Surface Pressure</span>
+            <span class="d-val" id="detailSurfacePressure">-- hPa</span>
+            <span class="d-sub" id="detailElevationText">Ground station elevation corrected</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">3-Hour Barometric Tendency</span>
+            <span class="d-val" id="detailPressureTendency">-- hPa / 3h</span>
+            <span class="d-sub" id="detailTendencyBadge">Steady</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Atmospheric Regimes</span>
+            <span class="d-val" id="detailRegimeText">Standard</span>
+            <span class="d-sub">WMO Barometric Classification</span>
+          </div>
+        </div>
+
+        <div class="detail-chart-box">
+          <div class="d-chart-title">24-Hour Barometric History & Forecast Trend (hPa)</div>
+          <svg class="detail-pressure-svg" id="detailPressureSvg" viewBox="0 0 600 160" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="pressFillGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#5BC0EB" stop-opacity="0.25"/>
+                <stop offset="100%" stop-color="#101B27" stop-opacity="0.0"/>
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="40" x2="600" y2="40" stroke="rgba(255,255,255,0.08)" stroke-dasharray="4 4"/>
+            <line x1="0" y1="80" x2="600" y2="80" stroke="rgba(255,255,255,0.08)" stroke-dasharray="4 4"/>
+            <line x1="0" y1="120" x2="600" y2="120" stroke="rgba(255,255,255,0.08)" stroke-dasharray="4 4"/>
+            <path id="detailPressureArea" d="" fill="url(#pressFillGrad)"/>
+            <path id="detailPressureLine" d="" fill="none" stroke="#5BC0EB" stroke-width="2.5" stroke-linecap="round"/>
+            <g id="detailPressureDots"></g>
+          </svg>
+          <div class="d-time-labels">
+            <span>00:00</span><span>04:00</span><span>08:00</span><span>12:00</span><span>16:00</span><span>20:00</span><span>23:00</span>
+          </div>
+        </div>
+
+        <div class="meteorology-guide-card">
+          <h4>
+            <svg class="icon"><use href="#i-info"/></svg>
+            Meteorological Weather Significance
+          </h4>
+          <div class="guide-rows">
+            <div class="guide-item">
+              <strong style="color:var(--accent-cyan);">Rapidly Falling (&gt; 1.5 hPa/3h):</strong>
+              <span>Indicates an approaching depression, cyclonic trough, or developing storm. Strong convective winds and rain probable.</span>
+            </div>
+            <div class="guide-item">
+              <strong style="color:var(--accent-emerald);">Steady / Rising:</strong>
+              <span>Indicates stable anticyclonic ridges, subsidence, and clearing skies with fair weather conditions.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PRECIPITATION TREND DETAIL INSPECTION MODAL -->
+  <div class="modal-overlay" id="modalPrecipDetails" role="dialog" aria-modal="true" aria-labelledby="precipModalTitle" style="display:none;">
+    <div class="modal-content modal-detail-content">
+      <div class="modal-header">
+        <h3 id="precipModalTitle">
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-drop"/></svg>
+          24-Hour Precipitation & Rain Probability Breakdown
+        </h3>
+        <button class="btn-modal-close" id="btnClosePrecipModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-summary-grid">
+          <div class="detail-metric-card">
+            <span class="d-label">Total 24H Expected Rain</span>
+            <span class="d-val" id="detailTotalRain">-- mm</span>
+            <span class="d-sub" id="detailRainCategory">Dry / Trace</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Peak Rain Intensity Window</span>
+            <span class="d-val" id="detailPeakWindow">--</span>
+            <span class="d-sub" id="detailPeakAmount">Max -- mm/h</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Highest Rain Probability</span>
+            <span class="d-val" id="detailMaxProb">--%</span>
+            <span class="d-sub">Precipitation Confidence</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Precipitation Type</span>
+            <span class="d-val" id="detailPrecipType">Liquid Rain</span>
+            <span class="d-sub">Freezing Level Above Ground</span>
+          </div>
+        </div>
+
+        <div class="precip-table-wrapper">
+          <table class="detail-precip-table">
+            <thead>
+              <tr>
+                <th>Hour</th>
+                <th>Condition</th>
+                <th>Rain (mm)</th>
+                <th>Chance (%)</th>
+                <th>Intensity</th>
+              </tr>
+            </thead>
+            <tbody id="detailPrecipTableBody">
+              <!-- Populated by JavaScript -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEDICATED LIVE SKY & CLOUD CAMERA STUDIO MODAL -->
+  <div class="modal-overlay" id="cameraModal" role="dialog" aria-modal="true" aria-labelledby="cameraModalTitle">
+    <div class="modal-content modal-camera-content">
+      <div class="modal-header">
+        <h3 id="cameraModalTitle">
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-camera"/></svg>
+          Live Sky & Cloud Vision Camera
+        </h3>
+        <button class="btn-modal-close" id="btnCloseCameraModal" type="button" aria-label="Close camera">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+
+      <div class="modal-body">
+        <div class="camera-viewport-wrap" id="cameraViewportWrap">
+          <video id="liveCameraVideo" class="camera-video-feed" autoplay playsinline muted></video>
+          <!-- Viewfinder Overlay -->
+          <div class="camera-hud-overlay">
+            <div class="hud-reticle"></div>
+            <div class="hud-status-bar">
+              <span class="hud-dot"></span>
+              <span id="cameraStatusText">Target Sky or Clouds</span>
+            </div>
+          </div>
+          <!-- Snapshot Preview (Shown after snap) -->
+          <canvas id="cameraCanvas" style="display:none;"></canvas>
+          <img id="cameraSnapshotPreview" class="camera-snapshot-view" alt="Camera snapshot" style="display:none;">
+        </div>
+
+        <!-- Camera Stream Controls -->
+        <div class="camera-controls-bar" id="cameraControlsLive">
+          <button type="button" class="btn-secondary btn-cam-switch" id="btnSwitchCamera" title="Switch front/rear camera">
+            <svg class="icon"><use href="#i-refresh"/></svg> <span>Flip Camera</span>
+          </button>
+          <button type="button" class="btn-primary btn-cam-snap" id="btnSnapPhoto">
+            <svg class="icon"><use href="#i-camera"/></svg> <span>Snap Sky Photo</span>
+          </button>
+        </div>
+
+        <!-- Post-Capture Analysis Controls (Shown after snapping photo) -->
+        <div class="snapshot-analysis-box" id="snapshotAnalysisBox" style="display:none;">
+          <div class="snap-prompt-row">
+            <input type="text" id="cameraPromptInput" class="camera-prompt-input"
+              placeholder="Ask AtmosX about this sky..." value="Does this sky look like rain is coming?">
+            <button type="button" class="btn-primary btn-submit-photo" id="btnSubmitPhotoQuery">
+              <span>Ask AtmosX 🚀</span>
+            </button>
+          </div>
+          <div class="camera-suggestion-chips">
+            <button type="button" class="cam-chip" data-q="Does this sky look like rain is coming?">🌧️ Rain coming?</button>
+            <button type="button" class="cam-chip" data-q="What type of clouds are these?">☁️ Cloud type?</button>
+            <button type="button" class="cam-chip" data-q="Is there any storm or severe weather risk in this sky?">⚠️ Storm risk?</button>
+            <button type="button" class="cam-chip" data-q="Is this weather good for outdoor farming or spraying?">🌾 Farming check</button>
+          </div>
+          <div class="snap-footer-actions">
+            <button type="button" class="btn-secondary" id="btnRetakePhoto">
+              <svg class="icon"><use href="#i-refresh"/></svg> <span>Retake Photo</span>
+            </button>
+            <span class="camera-privacy-note">🔒 Private stream. Only the snapshot is analyzed with live station data.</span>
+          </div>
+        </div>
+
+        <div class="camera-permission-info" id="cameraPermissionNotice">
+          <span>Requires camera access. Images are cross-referenced with live Open-Meteo observations for your station.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DEDICATED WEATHER DOCUMENT & FILE UPLOAD MODAL -->
   <div class="modal-overlay" id="uploadModal" role="dialog" aria-modal="true" aria-labelledby="uploadModalTitle">
-    <div class="modal-content">
+    <div class="modal-content modal-camera-content">
       <div class="modal-header">
         <h3 id="uploadModalTitle">
-          <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-camera"/></svg>
-          Weather Vision & Document Scanner
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-document"/></svg>
+          Upload Weather Documents & Data
         </h3>
         <button class="btn-modal-close" id="btnCloseUploadModal" type="button" aria-label="Close modal">
           <svg class="icon"><use href="#i-close"/></svg>
@@ -316,140 +1296,394 @@
       </div>
 
       <div class="modal-body">
-        <!-- Dropzone -->
         <div class="dropzone-box" id="fileDropzone" tabindex="0" role="button" aria-label="Drop weather photo or document here">
           <div class="dropzone-icon">
-            <svg class="icon" style="width:24px; height:24px;"><use href="#i-download"/></svg>
+            <svg class="icon" style="width:32px;height:32px;color:var(--accent-cyan);"><use href="#i-document"/></svg>
           </div>
-          <div class="dropzone-title">Click to upload or drag & drop</div>
+          <div class="dropzone-title">Click to upload or drag & drop documents</div>
           <div class="dropzone-desc">
-            Upload sky/cloud photographs for computer vision cloud classification, or weather bulletin documents (.pdf, .txt, .csv) for parameter extraction.
+            Upload weather documents, agrometeorological reports, station logs, or sky photographs for AI parameter extraction.
           </div>
           <div class="file-type-tags">
+            <span class="file-tag">PDF / TXT / CSV / JSON</span>
             <span class="file-tag">JPG / PNG / WEBP</span>
-            <span class="file-tag">PDF / TXT / CSV</span>
-            <span class="file-tag">Max 5MB</span>
+            <span class="file-tag">Max 5 MB</span>
           </div>
           <input type="file" id="fileInput" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt,.csv,.json" style="display:none;">
         </div>
 
-        <!-- Scanner Results Preview Card -->
         <div class="scanner-results-card" id="scannerResultsCard">
           <div class="scan-card-top">
             <img id="scanPreviewImg" class="scan-preview-img" src="" alt="Scanned weather preview" style="display:none;">
             <div class="scan-meta-details">
-              <div class="scan-detected-title" id="scanDetectedTitle">Scanning feature...</div>
+              <div class="scan-detected-title" id="scanDetectedTitle">Scanning…</div>
               <div class="scan-tags-list" id="scanTagsList"></div>
             </div>
           </div>
           <div class="scan-summary-text" id="scanSummaryText"></div>
-
-          <div class="modal-actions">
-            <button id="btnCancelScan" class="btn-secondary" type="button">Cancel</button>
-            <button id="btnAttachToQuery" class="btn-primary" type="button">
-              <svg class="icon"><use href="#i-check"/></svg> Attach to Weather Query
-            </button>
+          <div class="scan-actions-row">
+            <button id="btnAttachToQuery" class="btn-secondary" type="button">Attach to Query</button>
+            <button id="btnCancelScan" class="btn-secondary" type="button">Discard</button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- SETTINGS & SECURITY MODAL -->
+  
+
+  <!-- WIND VECTORS & GUSTS DETAIL MODAL -->
+  <div class="modal-overlay" id="modalWindDetails" role="dialog" aria-modal="true" aria-labelledby="windModalTitle" style="display:none;">
+    <div class="modal-content modal-detail-content">
+      <div class="modal-header">
+        <h3 id="windModalTitle">
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-wind"/></svg>
+          Wind Dynamics & Atmospheric Vectors
+        </h3>
+        <button class="btn-modal-close" id="btnCloseWindModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-summary-grid">
+          <div class="detail-metric-card">
+            <span class="d-label">Sustained Surface Wind (10m)</span>
+            <span class="d-val" id="detailWindSpeed">-- km/h</span>
+            <span class="d-sub" id="detailWindBeaufort">Beaufort: Force --</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Peak Wind Gusts</span>
+            <span class="d-val" id="detailWindGusts">-- km/h</span>
+            <span class="d-sub">Peak instantaneous vector</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Directional Heading</span>
+            <span class="d-val" id="detailWindDirection">--° (--)</span>
+            <span class="d-sub">Meteorological provenance</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Outdoor Activity Safety</span>
+            <span class="d-val" id="detailWindAdvisory">Safe</span>
+            <span class="d-sub">Recreational & agricultural guidance</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THERMAL COMFORT & HUMIDITY DETAIL MODAL -->
+  <div class="modal-overlay" id="modalThermalDetails" role="dialog" aria-modal="true" aria-labelledby="thermalModalTitle" style="display:none;">
+    <div class="modal-content modal-detail-content">
+      <div class="modal-header">
+        <h3 id="thermalModalTitle">
+          <svg class="icon" style="color:var(--accent-amber);"><use href="#i-temp"/></svg>
+          Thermal Index & Atmospheric Moisture
+        </h3>
+        <button class="btn-modal-close" id="btnCloseThermalModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-summary-grid">
+          <div class="detail-metric-card">
+            <span class="d-label">Dry Bulb Temperature</span>
+            <span class="d-val" id="detailDryTemp">--°C</span>
+            <span class="d-sub">Instrument ambient shade temp</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Apparent "Feels Like" Temp</span>
+            <span class="d-val" id="detailApparentTemp">--°C</span>
+            <span class="d-sub" id="detailComfortBadge">Comfortable</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Relative Humidity (RH)</span>
+            <span class="d-val" id="detailHumidity">--%</span>
+            <span class="d-sub">Water vapor saturation</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Dew Point Temperature</span>
+            <span class="d-val" id="detailDewPoint">--°C</span>
+            <span class="d-sub">Condensation threshold</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AIR QUALITY & POLLUTANTS DETAIL MODAL -->
+  <div class="modal-overlay" id="modalAqiDetails" role="dialog" aria-modal="true" aria-labelledby="aqiModalTitle" style="display:none;">
+    <div class="modal-content modal-detail-content">
+      <div class="modal-header">
+        <h3 id="aqiModalTitle">
+          <svg class="icon" style="color:var(--accent-emerald);"><use href="#i-shield"/></svg>
+          Air Quality Index & Atmospheric Pollutant Breakdown
+        </h3>
+        <button class="btn-modal-close" id="btnCloseAqiModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-summary-grid">
+          <div class="detail-metric-card">
+            <span class="d-label">US Air Quality Index (AQI)</span>
+            <span class="d-val" id="detailUsAqi">--</span>
+            <span class="d-sub" id="detailAqiCategory">Good</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">European AQI Standard</span>
+            <span class="d-val" id="detailEuAqi">--</span>
+            <span class="d-sub">CAQI Air Index</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">PM2.5 Fine Particulates</span>
+            <span class="d-val" id="detailPM25">-- µg/m³</span>
+            <span class="d-sub">Respiratory penetration depth</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">PM10 Inhalable Particles</span>
+            <span class="d-val" id="detailPM10">-- µg/m³</span>
+            <span class="d-sub">Dust & mechanical aerosols</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- UV & SOLAR EXPOSURE DETAIL MODAL -->
+  <div class="modal-overlay" id="modalUvDetails" role="dialog" aria-modal="true" aria-labelledby="uvModalTitle" style="display:none;">
+    <div class="modal-content modal-detail-content">
+      <div class="modal-header">
+        <h3 id="uvModalTitle">
+          <svg class="icon" style="color:var(--accent-amber);"><use href="#i-wx-sun"/></svg>
+          Ultraviolet Radiation & Solar Exposure Advisory
+        </h3>
+        <button class="btn-modal-close" id="btnCloseUvModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="detail-summary-grid">
+          <div class="detail-metric-card">
+            <span class="d-label">Current UV Index</span>
+            <span class="d-val" id="detailUvIndex">--</span>
+            <span class="d-sub" id="detailUvCategory">Low</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Peak UV Window Today</span>
+            <span class="d-val" id="detailUvPeakHour">--:-- - --:--</span>
+            <span class="d-sub" id="detailUvPeakVal">Max UV: --</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Sunburn Risk Threshold</span>
+            <span class="d-val" id="detailBurnTime">No risk</span>
+            <span class="d-sub">Unprotected skin exposure</span>
+          </div>
+          <div class="detail-metric-card">
+            <span class="d-label">Recommended Protection</span>
+            <span class="d-val" id="detailProtection">None required</span>
+            <span class="d-sub">WHO UV radiation standards</span>
+          </div>
+        </div>
+
+        <!-- 24-Hour UV Radiation Curve -->
+        <div class="uv-hourly-curve-box">
+          <div class="uv-curve-header">
+            <span class="uv-curve-title">☀️ Today's Hourly UV Radiation Profile</span>
+            <span class="uv-curve-legend">0 to 11+ Index Scale</span>
+          </div>
+          <div class="uv-curve-track" id="uvHourlyCurveTrack">
+            <!-- Dynamically populated 24-hour bars -->
+          </div>
+        </div>
+
+        <!-- WHO UV Health & Protection Guide -->
+        <div class="uv-guide-table-wrap">
+          <div class="uv-guide-title">World Health Organization (WHO) Global Solar UV Index</div>
+          <div class="uv-guide-grid">
+            <div class="uv-guide-item uv-lvl-low">
+              <span class="ug-badge">0 – 2 (Low)</span>
+              <span class="ug-desc">Minimal danger for average person. Wear sunglasses on bright days.</span>
+            </div>
+            <div class="uv-guide-item uv-lvl-mod">
+              <span class="ug-badge">3 – 5 (Moderate)</span>
+              <span class="ug-desc">Moderate risk of harm. Seek shade during midday, wear hat & SPF 30+.</span>
+            </div>
+            <div class="uv-guide-item uv-lvl-high">
+              <span class="ug-badge">6 – 7 (High)</span>
+              <span class="ug-desc">High risk of harm. Reduce sun exposure between 10 AM and 4 PM, SPF 30+, UV sunglasses.</span>
+            </div>
+            <div class="uv-guide-item uv-lvl-vhigh">
+              <span class="ug-badge">8 – 10 (Very High)</span>
+              <span class="ug-desc">Very high risk. Unprotected skin burns quickly. Minimize midday sun, wear protective clothing.</span>
+            </div>
+            <div class="uv-guide-item uv-lvl-extreme">
+              <span class="ug-badge">11+ (Extreme)</span>
+              <span class="ug-desc">Extreme danger. Take all precautions: skin can burn in minutes. Stay indoors around solar noon.</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+    <!-- GLOBAL LOCATION SWITCHER MODAL -->
+  <div class="modal-overlay" id="locationModal" role="dialog" aria-modal="true" aria-labelledby="locationModalTitle">
+    <div class="modal-content location-modal-content">
+      <div class="modal-header">
+        <h3 id="locationModalTitle">
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-pin"/></svg>
+          Switch Weather Station / City
+        </h3>
+        <button class="btn-modal-close" id="btnCloseLocationModal" type="button" aria-label="Close modal">
+          <svg class="icon"><use href="#i-close"/></svg>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div class="loc-search-box">
+          <svg class="icon"><use href="#i-globe"/></svg>
+          <input type="text" id="inputSearchCity" class="loc-search-input" placeholder="Search any city worldwide (e.g. Wayanad, Chennai, Tokyo, Paris)..." autocomplete="off">
+          <button type="button" id="btnSearchCity" class="btn-search-city">Search</button>
+        </div>
+        <div class="loc-gps-row">
+          <button type="button" id="btnUseCurrentLocation" class="btn-use-gps" title="Detect and load live telemetry for current GPS coordinates">
+            <svg class="icon" style="width:16px;height:16px;color:var(--accent-cyan);"><use href="#i-pin"/></svg>
+            <span>Use My Exact Location (GPS)</span>
+          </button>
+        </div>
+        <div id="citySearchResults" class="city-search-results"></div>
+
+        <div class="recent-stations-section" id="recentStationsSection" style="display:none;">
+          <div class="popular-stations-title">RECENT LOCATIONS</div>
+          <div class="popular-stations-grid" id="recentStationsGrid"></div>
+        </div>
+
+        <div class="popular-stations-section">
+          <div class="popular-stations-title">POPULAR METEOROLOGICAL STATIONS</div>
+          <div class="popular-stations-grid" id="popularStationsGrid">
+            <button type="button" class="station-chip" data-name="Wayanad, Kerala">📍 Wayanad, Kerala</button>
+            <button type="button" class="station-chip" data-name="Chennai, Tamil Nadu">📍 Chennai, Tamil Nadu</button>
+            <button type="button" class="station-chip" data-name="Bengaluru, Karnataka">📍 Bengaluru, Karnataka</button>
+            <button type="button" class="station-chip" data-name="Delhi NCR">📍 Delhi NCR</button>
+            <button type="button" class="station-chip" data-name="Mumbai, Maharashtra">📍 Mumbai, Maharashtra</button>
+            <button type="button" class="station-chip" data-name="Kochi, Kerala">📍 Kochi, Kerala</button>
+            <button type="button" class="station-chip" data-name="Shimla, Himachal Pradesh">📍 Shimla, HP</button>
+            <button type="button" class="station-chip" data-name="Leh, Ladakh">📍 Leh, Ladakh</button>
+            <button type="button" class="station-chip" data-name="Nashik, Maharashtra">📍 Nashik, Maharashtra</button>
+            <button type="button" class="station-chip" data-name="Puri, Odisha">📍 Puri, Odisha</button>
+            <button type="button" class="station-chip" data-name="Jaipur, Rajasthan">📍 Jaipur, Rajasthan</button>
+            <button type="button" class="station-chip" data-name="Tokyo, Japan">📍 Tokyo, Japan</button>
+            <button type="button" class="station-chip" data-name="London, UK">📍 London, UK</button>
+            <button type="button" class="station-chip" data-name="New York, USA">📍 New York, USA</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SETTINGS MODAL -->
   <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsModalTitle">
     <div class="modal-content">
       <div class="modal-header">
         <h3 id="settingsModalTitle">
-          <svg class="icon" style="color:var(--neon-cyan);"><use href="#i-settings"/></svg>
-          Settings & Security Guardrails
+          <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-settings"/></svg>
+          Settings & Language
         </h3>
-        <button class="btn-modal-close" id="btnCloseSettingsModal" type="button" aria-label="Close settings">
+        <button class="btn-modal-close" id="btnCloseSettingsModal" type="button" aria-label="Close modal">
           <svg class="icon"><use href="#i-close"/></svg>
         </button>
       </div>
 
       <div class="modal-body">
-        <!-- Voice Interface Settings -->
-        <div class="settings-group">
-          <div class="settings-toggle-row">
+        <div class="settings-section">
+          <h4>Language & Audio</h4>
+          <div class="setting-item">
             <div>
-              <div class="settings-label">Auto-Speak Bot Responses</div>
-              <div class="settings-desc">Automatically read out WeatherGPT answers using speech synthesis</div>
+              <div class="setting-label">Voice Output (TTS)</div>
+              <div class="setting-desc">Automatically read responses aloud in the detected language</div>
             </div>
             <label class="toggle-switch">
               <input type="checkbox" id="toggleAutoSpeak">
-              <span class="slider-track"></span>
+              <span class="toggle-slider"></span>
             </label>
           </div>
-        </div>
 
-        <div class="settings-group">
-          <label class="settings-label" for="selectVoiceSpeed">Speech Synthesis Speed</label>
-          <select id="selectVoiceSpeed" class="settings-select">
-            <option value="0.85">0.85x — Deliberate</option>
-            <option value="1.0" selected>1.0x — Normal</option>
-            <option value="1.2">1.2x — Fast</option>
-          </select>
-        </div>
-
-        <div class="settings-group">
-          <label class="settings-label" for="selectVoiceChoice">Voice Character</label>
-          <select id="selectVoiceChoice" class="settings-select">
-            <!-- Dynamically populated from speechSynthesis.getVoices() -->
-          </select>
-        </div>
-
-        <hr style="border:none; border-top:1px solid var(--sky-border); margin: 6px 0;">
-
-        <!-- Cloud API Key Integration (Optional) -->
-        <div class="settings-group">
-          <div class="settings-toggle-row">
+          <div class="setting-item">
             <div>
-              <div class="settings-label">Cloud LLM API Mode (Optional)</div>
-              <div class="settings-desc">By default, WeatherGPT uses the zero-latency Offline Expert Engine. Enable to route through Gemini or Claude with your personal key.</div>
+              <div class="setting-label">Speech Speed</div>
+              <div class="setting-desc">Adjust speech rate for voice playback</div>
             </div>
-            <label class="toggle-switch">
-              <input type="checkbox" id="toggleExternalApi">
-              <span class="slider-track"></span>
-            </label>
+            <select id="selectVoiceSpeed" class="setting-select">
+              <option value="0.85">Slow (0.85x)</option>
+              <option value="1.0" selected>Normal (1.0x)</option>
+              <option value="1.15">Fast (1.15x)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-label">Preferred Voice Accent</div>
+              <div class="setting-desc">Select preferred speech synthesis voice</div>
+            </div>
+            <select id="selectVoiceChoice" class="setting-select">
+              <option value="default">System Default (Native Accent)</option>
+            </select>
+          </div>
+
+          <div class="setting-item">
+            <div>
+              <div class="setting-label">Interface Response Language</div>
+              <div class="setting-desc">Force answers into a specific language or auto-detect from input</div>
+            </div>
+            <select id="selectLanguage" class="setting-select">
+              <option value="auto" selected>Auto-detect from input (15+ languages)</option>
+              <option value="en">English (Global)</option>
+              <option value="hi">हिन्दी (Hindi)</option>
+              <option value="ta">தமிழ் (Tamil)</option>
+              <option value="te">తెలుగు (Telugu)</option>
+              <option value="ml">മലയാളം (Malayalam)</option>
+              <option value="bn">বাংলা (Bengali)</option>
+              <option value="mr">मराठी (Marathi)</option>
+              <option value="gu">ગુજરાતી (Gujarati)</option>
+              <option value="ar">العربية (Arabic)</option>
+              <option value="fr">Français (French)</option>
+              <option value="es">Español (Spanish)</option>
+              <option value="de">Deutsch (German)</option>
+              <option value="ja">日本語 (Japanese)</option>
+              <option value="zh">中文 (Mandarin)</option>
+            </select>
           </div>
         </div>
 
-        <div id="externalApiConfigWrap" class="settings-group" style="display:none; flex-direction:column; gap:8px;">
-          <label class="settings-label" for="selectApiProvider">Provider</label>
-          <select id="selectApiProvider" class="settings-select">
-            <option value="gemini" selected>Google Gemini (gemini-1.5-flash)</option>
-            <option value="anthropic">Anthropic Claude (claude-3-5-sonnet)</option>
-          </select>
-
-          <label class="settings-label" for="inputApiKey">Personal API Key</label>
-          <input type="password" id="inputApiKey" class="settings-input" placeholder="AIzaSy... or sk-ant-..." autocomplete="off">
-          <div class="settings-desc">Your key is kept strictly in local browser storage; it is never sent to external servers other than the designated model endpoint.</div>
-        </div>
-
-        <!-- Security Guardrails Card -->
-        <div class="security-badge-box">
-          <svg class="icon"><use href="#i-shield"/></svg>
-          <div>
-            <strong>Hardened Client Security Active:</strong>
-            Strict CSP enabled, magic bytes binary validation on file uploads, anti-prompt injection barriers, and zero innerHTML injection.
+        <div class="settings-section">
+          <h4>API & Model Security</h4>
+          <div class="security-badge-box" style="background:rgba(91,192,235,0.08);border-color:rgba(91,192,235,0.25);">
+            <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-radar"/></svg>
+            <div style="font-size:12px;line-height:1.5;">
+              <strong style="color:var(--accent-cyan);">AI fully configured on the server.</strong><br>
+              AtmosX uses secure server-side API proxying with strict rate limiting, input sanitization, and grounded Open-Meteo telemetry verification.
+            </div>
           </div>
         </div>
 
-        <div class="modal-actions">
-          <button id="btnSaveSettings" class="btn-primary" type="button" style="width:100%;">Save Preferences</button>
+        <div style="display:flex;justify-content:flex-end;gap:10px;margin-top:20px;">
+          <button id="btnSaveSettings" class="btn-send-main" type="button" style="padding:8px 22px;height:auto;">Save Settings</button>
         </div>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer>
-    Weather-Grounded Climate RAG<span class="dot-sep">·</span>Two-Way Voice STT/TTS<span class="dot-sep">·</span>Computer Vision Sky Scanner<span class="dot-sep">·</span>Smart India Hackathon SIH26068
+  <footer class="app-footer">
+    <div class="footer-inner">
+      <span>weatherGPT · Atmospheric AI & Climate Observatory</span>
+      <span>WMO-Compliant High-Resolution NWP Telemetry</span>
+    </div>
   </footer>
 
+  <!-- Toast Notifications -->
+  <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
   <!-- Scripts -->
-  <script src="./data/weather_data.js"></script>
-  <script src="./app.js"></script>
+  <script src="data/weather_data.js"></script>
+  <script src="app.js?v=2.6.0"></script>
 </body>
 </html>
