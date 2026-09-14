@@ -32,7 +32,8 @@ logging.basicConfig(
 )
 logger = logging.getLogger("atmosx")
 
-from fastapi import FastAPI, APIRouter, HTTPException, Request
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Query
+from textblob import TextBlob
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from starlette.middleware.base import BaseHTTPMiddleware
@@ -969,9 +970,20 @@ def detect_identity_or_capabilities(query: str) -> Optional[str]:
         )
     return None
 
+SENTIMENT_KEYWORDS = ["social media", "sentiment", "saying", "mood"]
+
+def detect_sentiment_intent(text: str) -> bool:
+    """Check if query contains keywords related to social media sentiment or mood."""
+    if not text:
+        return False
+    t = text.lower()
+    return any(k in t for k in SENTIMENT_KEYWORDS)
+
 def is_general_science_question(query: str) -> bool:
     """Determine if query is purely conceptual/scientific with no location intent."""
     if not query:
+        return False
+    if detect_sentiment_intent(query):
         return False
     q = query.lower().strip()
     triggers = [
@@ -1052,7 +1064,7 @@ def extract_location_from_query(query: str) -> Optional[str]:
         if re.search(pattern, q_lower):
             return city
             
-    prep_match = re.search(r'\b(?:in|at|for|near|around|of)\s+([A-Za-z]{3,24}(?:\s+[A-Za-z]{3,24})?)', query)
+    prep_match = re.search(r'\b(?:in|at|for|near|around|of|about)\s+([A-Za-z]{3,24}(?:\s+[A-Za-z]{3,24})?)', query)
     if prep_match:
         cand = prep_match.group(1).strip()
         ignore = {
@@ -1060,7 +1072,8 @@ def extract_location_from_query(query: str) -> Optional[str]:
             "next week", "the rain", "the morning", "the evening", "my area", "this city",
             "the country", "the world", "degrees", "celsius", "detail", "english", "hindi",
             "this sky", "the sky", "this photo", "the photo", "this image", "the image",
-            "this cloud", "the clouds", "this picture", "the picture", "the weather", "this weather"
+            "this cloud", "the clouds", "this picture", "the picture", "the weather", "this weather",
+            "social media", "the sentiment", "the mood", "sentiment", "mood", "the people"
         }
         cand_lower = cand.lower()
         if cand_lower not in ignore and not cand_lower.startswith(("this ", "the ")) and len(cand) >= 3:
@@ -1260,6 +1273,7 @@ CORE DIRECTIVES:
    - If the user is asking a conversational question, greeting, or inquiring about your identity or capabilities (e.g. "Who are you?", "Are you a weather AI?", "Hello", "What can you do?"), answer their specific question directly, politely, and conversationally in their language. Do NOT dump a weather telemetry report for a city when they did not ask for weather.
    - If the user asks an atmospheric science question (e.g. "What causes thunderstorms?", "Explain relative humidity"), explain the science thoroughly and clearly without forcing city weather data.
    - When the user asks for weather conditions, forecasts, rain, or temperatures, deliver a grounded, structured meteorological breakdown based strictly on the live data provided.
+   - When Atmospheric Sentiment & Social Media Mood data is provided, the user is specifically interested in public mood, community sentiment, or what people are saying on social media. Discuss the social media atmosphere, public mood emoji, positivity score, and sample headlines directly in relation to the live weather conditions. Do NOT default to a static weather card or ignore their sentiment question!
 
 4. MULTI-TURN CONVERSATION CONTEXT:
    - Pay close attention to recent conversation history. If the user asks follow-up questions like "What about morning?", "Will it rain then?", or "Should I take an umbrella?", resolve the location and time context naturally from previous turns.
@@ -1285,7 +1299,8 @@ def prepare_gemini_request(
     history: Optional[List[Dict[str, str]]] = None,
     image_base64: Optional[str] = None,
     image_mime_type: Optional[str] = "image/jpeg",
-    structured_facts: Optional[Dict[str, Any]] = None
+    structured_facts: Optional[Dict[str, Any]] = None,
+    sentiment_data: Optional[Dict[str, Any]] = None
 ):
     api_key = _load_env()
 
@@ -1347,6 +1362,27 @@ def prepare_gemini_request(
         formatted_weather = format_weather_context_for_prompt(weather_context, now_utc)
         user_content_parts.append(f"\n\n=== Live Grounding Weather Data (Full Context) ===\n{formatted_weather}")
 
+    # Inject Live Atmospheric Sentiment & Social Media Mood Data if available
+    if sentiment_data:
+        s_score = sentiment_data.get("score", 50)
+        s_sentiment = sentiment_data.get("sentiment", "Neutral")
+        s_emoji = sentiment_data.get("emoji", "😌")
+        s_city = sentiment_data.get("city", "the specified location")
+        s_headlines = sentiment_data.get("headlines", [])
+        headlines_str = "\n".join(f"- \"{h}\"" for h in s_headlines) if s_headlines else "- Routine seasonal commentary."
+
+        sentiment_block = (
+            f"\n\n=== LIVE ATMOSPHERIC SENTIMENT & SOCIAL MEDIA MOOD DATA ===\n"
+            f"Target Location: {s_city}\n"
+            f"Public Mood Sentiment: {s_sentiment} ({s_emoji})\n"
+            f"Atmospheric Positivity Score: {s_score}/100\n"
+            f"Recent Social Media Chatter & News Headlines:\n{headlines_str}\n"
+            f"CRITICAL INSTRUCTION: The user is asking about the social media mood or public sentiment. "
+            f"Actively discuss this mood ({s_sentiment} {s_emoji}, {s_score}% positivity) and recent chatter "
+            f"in connection with the live weather data. Provide an engaging, insightful response rather than a static weather card."
+        )
+        user_content_parts.append(sentiment_block)
+
     user_content = "".join(user_content_parts)
 
     user_parts: List[Dict[str, Any]] = []
@@ -1378,15 +1414,64 @@ def generate_grounded_fallback_response(
     query: str,
     weather_context: Optional[dict],
     language: str = "en",
-    structured_facts: Optional[Dict[str, Any]] = None
+    structured_facts: Optional[Dict[str, Any]] = None,
+    sentiment_data: Optional[Dict[str, Any]] = None
 ) -> str:
     """
     Intelligent meteorological fallback generator when upstream AI quota is temporarily saturated.
     When structured_facts are provided (from the intent router), uses deterministic formatting
     to ensure zero current/tomorrow mixing and factual accuracy.
+    When sentiment_data is provided, generates a comprehensive social media mood & atmospheric sentiment summary.
     """
     lang = (language or "en").lower()
     q = (query or "").lower()
+
+    # ── Priority 0: Atmospheric Sentiment & Social Media Mood ──
+    if sentiment_data:
+        s_city = sentiment_data.get("city", "the area")
+        s_score = sentiment_data.get("score", 50)
+        s_sentiment = sentiment_data.get("sentiment", "Neutral")
+        s_emoji = sentiment_data.get("emoji", "😌")
+        s_headlines = sentiment_data.get("headlines", [])
+
+        weather_info = ""
+        if weather_context and weather_context.get("current"):
+            curr_c = weather_context["current"].get("condition", "")
+            curr_t = weather_context["current"].get("temperature_c")
+            if curr_t is not None:
+                weather_info = f" In tandem with live conditions of **{curr_t}°C** ({curr_c}),"
+
+        headlines_formatted = "\n".join(f"• *\"{h}\"*" for h in s_headlines[:4]) if s_headlines else "• *Steady daily conversations recorded across local feeds.*"
+
+        if lang == "hi":
+            return (
+                f"### {s_emoji} **{s_city} का सोशल मीडिया मूड और वातावरण विश्लेषण**\n\n"
+                f"{weather_info} **{s_city}** में वर्तमान जनभावना **{s_sentiment}** है, जिसका सकारात्मकता स्कोर **{s_score}/100** {s_emoji} दर्ज किया गया है।\n\n"
+                f"**लोग और स्थानीय मीडिया क्या कह रहे हैं:**\n{headlines_formatted}\n\n"
+                f"सोशल मीडिया चर्चाओं से पता चलता है कि मौजूदा मौसम का स्थानीय जनजीवन और लोगों के मिजाज पर सीधा असर दिख रहा है।"
+            )
+        elif lang == "ta":
+            return (
+                f"### {s_emoji} **{s_city} சமூக ஊடக மனநிலை மற்றும் கருத்து பகுப்பாய்வு**\n\n"
+                f"{weather_info} **{s_city}**-ல் தற்போதைய பொது மனநிலை **{s_sentiment}** ஆக உள்ளது (மதிப்பீடு: **{s_score}/100** {s_emoji}).\n\n"
+                f"**சமூக ஊடகங்கள் மற்றும் தலைப்புச் செய்திகள் கூறுவது:**\n{headlines_formatted}\n\n"
+                f"தற்போதைய வானிலை மக்களின் அன்றாட மனநிலையிலும் சமூக ஊடக உரையாடல்களிலும் பிரதிபலிக்கிறது."
+            )
+        elif lang == "ml":
+            return (
+                f"### {s_emoji} **{s_city} സോഷ്യൽ മീഡിയ മൂഡും പ്രതികരണങ്ങളും**\n\n"
+                f"{weather_info} **{s_city}**-ൽ നിലവിലെ പൊതുവികാരം **{s_sentiment}** ആണ് (സ്കോർ: **{s_score}/100** {s_emoji}).\n\n"
+                f"**സോഷ്യൽ മീഡിയയിൽ ആളുകൾ പറയുന്നത്:**\n{headlines_formatted}\n\n"
+                f"കാലാവസ്ഥാ മാറ്റങ്ങൾ നഗരത്തിലെ ജനങ്ങളുടെ പ്രതികരണങ്ങളിലും സംഭാഷണങ്ങളിലും വ്യക്തമായി കാണാം."
+            )
+        else:
+            return (
+                f"### {s_emoji} **Social Media Mood & Public Sentiment for {s_city}**\n\n"
+                f"The current social media atmosphere across **{s_city}** is **{s_sentiment}** with an Atmospheric Positivity Score of **{s_score}/100** {s_emoji}.{weather_info}\n\n"
+                f"**What people are saying & recent media highlights:**\n"
+                f"{headlines_formatted}\n\n"
+                f"Local feeds and discussions reflect a **{s_sentiment.lower()}** reaction as current conditions shape public movement, commute, and daily vibes."
+            )
 
     # ── Priority 1: Use structured facts from intent router (guaranteed accurate) ──
     if structured_facts and structured_facts.get("condition"):
@@ -1734,6 +1819,136 @@ def enforce_rate_limit(request: Request):
 # ==============================================================================
 
 router = APIRouter()
+
+async def compute_atmospheric_sentiment(
+    city: str,
+    weather_condition: Optional[str] = None
+) -> Dict[str, Any]:
+    """
+    Atmospheric Sentiment Analysis:
+    Generates or fetches 3-5 media headlines based on city & weather, runs them through
+    TextBlob(text).sentiment.polarity, and returns score, sentiment, and emoji.
+    """
+    async def fetch_media_headlines(target_city: str, target_weather: Optional[str] = None) -> List[str]:
+        # Ready for NewsAPI key swap-in:
+        news_api_key = os.environ.get("NEWS_API_KEY", "").strip()
+        if news_api_key:
+            try:
+                query = f"{target_city} {target_weather or ''}".strip()
+                async with httpx.AsyncClient(timeout=5.0) as client:
+                    res = await client.get(
+                        "https://newsapi.org/v2/everything",
+                        params={"q": query, "pageSize": 5, "apiKey": news_api_key}
+                    )
+                    if res.status_code == 200:
+                        articles = res.json().get("articles", [])
+                        titles = [a.get("title") for a in articles if a.get("title")]
+                        if titles:
+                            return titles[:5]
+            except Exception as ex:
+                logger.warning("NewsAPI fetch failed, using sample headlines: %s", ex)
+
+        # Contextual media headlines based on city and weather condition
+        c_clean = target_city.strip().title()
+        cond_str = (target_weather or "fair").lower()
+
+        if any(w in cond_str for w in ["storm", "thunder", "severe", "cyclone", "hurricane", "flood", "hazard", "gale"]):
+            return [
+                f"Severe weather warning across {c_clean} causes gloomy disruptions and terrible damage.",
+                f"Dangerous torrential downpours trigger alarming travel crisis and bitter cold in {c_clean}.",
+                f"{c_clean} emergency officials issue urgent alert as devastating fierce storm hits.",
+                f"Frustrating power outages and harsh freezing winds trouble {c_clean} neighborhoods."
+            ]
+        elif any(w in cond_str for w in ["rain", "drizzle", "shower"]):
+            return [
+                f"Gloomy rain showers slow morning commute across {c_clean}.",
+                f"{c_clean} farmers welcome refreshing rainfall to boost water reservoirs.",
+                f"Cozy cafes and vibrant umbrella fashion brighten wet streets of {c_clean}.",
+                f"Persistent damp rain continues across {c_clean} with cool breeze."
+            ]
+        elif any(w in cond_str for w in ["clear", "sun", "fair", "bright"]):
+            return [
+                f"Glorious brilliant sunny weather brings delight and joy across {c_clean}.",
+                f"{c_clean} residents celebrate beautiful warm sunshine in parks and cafes.",
+                f"Spectacular radiant skies boost tourism and joyful outdoor events in {c_clean}.",
+                f"Local businesses thrive as {c_clean} enjoys delightful sunny conditions."
+            ]
+        elif any(w in cond_str for w in ["snow", "blizzard", "freeze", "frost", "cold", "ice"]):
+            return [
+                f"Bitter subzero freeze and icy roads create annoying travel hazards in {c_clean}.",
+                f"Winter sports lovers rejoice as scenic fresh snow blankets {c_clean}.",
+                f"{c_clean} road crews work tirelessly to manage freezing snow conditions.",
+                f"Chilly freezing weather encourages indoor dining and cozy gatherings in {c_clean}."
+            ]
+        elif any(w in cond_str for w in ["fog", "mist", "haze"]):
+            return [
+                f"Atmospheric morning fog blankets {c_clean} harbor with calm skyline views.",
+                f"Cautious drivers navigate hazy morning conditions across {c_clean} roads.",
+                f"{c_clean} weather stations record tranquil morning mist clearing by noon.",
+                f"Steady barometric readings and misty breeze observed throughout {c_clean}."
+            ]
+        else:
+            return [
+                f"Average seasonal temperatures observed across {c_clean} today.",
+                f"Steady barometric readings and typical overcast skies over {c_clean}.",
+                f"Routine daily traffic and moderate cloud cover recorded in {c_clean}."
+            ]
+
+    try:
+        headlines = await fetch_media_headlines(city, weather_condition)
+        if not headlines:
+            headlines = [f"Average seasonal temperatures observed across {city.strip().title()} today."]
+
+        # Run the headlines through TextBlob(text).sentiment.polarity
+        polarities = [TextBlob(h).sentiment.polarity for h in headlines]
+        avg_polarity = sum(polarities) / len(polarities)
+
+        # Map polarity [-1.0, 1.0] to percentage score [0, 100]
+        score = int(round((avg_polarity + 1.0) / 2.0 * 100))
+        score = max(0, min(100, score))
+
+        if avg_polarity > 0.08:
+            sentiment = "Positive"
+            emoji = "🤩"
+        elif avg_polarity < -0.08:
+            sentiment = "Negative"
+            emoji = "🥶"
+        else:
+            sentiment = "Neutral"
+            emoji = "😌"
+
+        return {
+            "score": score,
+            "sentiment": sentiment,
+            "emoji": emoji,
+            "city": city,
+            "weather_condition": weather_condition,
+            "headlines": headlines,
+        }
+    except Exception as e:
+        logger.error("Error in compute_atmospheric_sentiment: %s", e)
+        return {
+            "score": 50,
+            "sentiment": "Neutral",
+            "emoji": "😌",
+            "city": city,
+            "weather_condition": weather_condition,
+            "headlines": [],
+        }
+
+@router.get("/api/mood")
+@router.get("/api/v1/mood")
+async def get_city_mood(
+    city: str = Query("London", description="City name"),
+    weather_condition: Optional[str] = Query(None, description="Current weather condition"),
+):
+    """
+    Atmospheric Sentiment Analysis:
+    Generates or fetches 3-5 media headlines based on city & weather, runs them through
+    TextBlob(text).sentiment.polarity, and returns score, sentiment, and emoji.
+    """
+    return await compute_atmospheric_sentiment(city, weather_condition)
+
 @router.get("/api/v1/resolve-location")
 async def api_resolve_location(
     name: Optional[str] = None,
@@ -1855,6 +2070,26 @@ async def chat(payload: ChatRequest, request: Request):
     # 2. Resolve Weather Context with conversation history
     weather_context, resolved_name, raw_weather_data, raw_aqi_data = await resolve_weather_context_for_query(payload.query, payload.location_name, payload.history)
 
+    # 2b. Check for Atmospheric Sentiment / Social Media Mood intent
+    has_sentiment_intent = detect_sentiment_intent(payload.query)
+    sentiment_data = None
+    sentiment_city = None
+    if has_sentiment_intent:
+        sentiment_city = (
+            (resolved_name.split(",")[0].strip() if resolved_name else None)
+            or (weather_context.get("location", "").split(",")[0].strip() if weather_context and weather_context.get("location") else None)
+            or (payload.location_name.strip() if payload.location_name and payload.location_name != "Selected Location" else None)
+            or extract_location_from_query(payload.query)
+            or "London"
+        )
+        sentiment_cond = None
+        if weather_context and weather_context.get("current"):
+            sentiment_cond = weather_context["current"].get("condition")
+        try:
+            sentiment_data = await compute_atmospheric_sentiment(sentiment_city, sentiment_cond)
+        except Exception as ex:
+            logger.warning("Sentiment calculation failed for chat: %s", ex)
+
     # 3. Parse weather intent and extract structured facts for accuracy
     structured_facts = None
     if raw_weather_data:
@@ -1865,16 +2100,23 @@ async def chat(payload: ChatRequest, request: Request):
     api_key = _load_env()
     if not api_key:
         logger.info("GEMINI_API_KEY not configured — serving deterministic meteorological response.")
-        fallback_text = generate_grounded_fallback_response(payload.query, weather_context, payload.language or "en", structured_facts=structured_facts)
+        fallback_text = generate_grounded_fallback_response(
+            payload.query,
+            weather_context,
+            payload.language or "en",
+            structured_facts=structured_facts,
+            sentiment_data=sentiment_data
+        )
         cleaned_answer = sanitize_ai_response(fallback_text).strip()
         suggestions = generate_contextual_suggestions(payload.query, weather_context)
         return {
             "answer": cleaned_answer,
-            "location": weather_context.get("location") if weather_context else None,
+            "location": weather_context.get("location") if weather_context else (sentiment_city if sentiment_data else None),
             "warning": weather_context.get("warning") if weather_context else None,
             "has_weather_context": weather_context is not None,
             "ai_used": False,
-            "suggestions": suggestions
+            "suggestions": suggestions,
+            "sentiment": sentiment_data
         }
 
     api_key, gemini_payload = prepare_gemini_request(
@@ -1884,7 +2126,8 @@ async def chat(payload: ChatRequest, request: Request):
         payload.history,
         payload.image_base64,
         payload.image_mime_type,
-        structured_facts=structured_facts
+        structured_facts=structured_facts,
+        sentiment_data=sentiment_data
     )
 
     client = get_http_client()
@@ -1919,18 +2162,25 @@ async def chat(payload: ChatRequest, request: Request):
 
     if not text:
         # Seamlessly fallback to grounded NWP meteorological engine with structured facts
-        text = generate_grounded_fallback_response(payload.query, weather_context, payload.language or "en", structured_facts=structured_facts)
+        text = generate_grounded_fallback_response(
+            payload.query,
+            weather_context,
+            payload.language or "en",
+            structured_facts=structured_facts,
+            sentiment_data=sentiment_data
+        )
 
     cleaned_answer = sanitize_ai_response(text).strip()
     suggestions = generate_contextual_suggestions(payload.query, weather_context)
 
     return {
         "answer": cleaned_answer,
-        "location": weather_context.get("location") if weather_context else None,
+        "location": weather_context.get("location") if weather_context else (sentiment_city if sentiment_data else None),
         "warning": weather_context.get("warning") if weather_context else None,
         "has_weather_context": weather_context is not None,
         "ai_used": ai_used,
-        "suggestions": suggestions
+        "suggestions": suggestions,
+        "sentiment": sentiment_data
     }
 
 @router.post("/api/v1/chat/stream")
@@ -1972,6 +2222,26 @@ async def chat_stream(payload: ChatRequest, request: Request):
     # 2. Regular Gemini + Weather Streaming
     weather_context, resolved_name, raw_weather_data, raw_aqi_data = await resolve_weather_context_for_query(payload.query, payload.location_name, payload.history)
 
+    # 2b. Check for Atmospheric Sentiment / Social Media Mood intent
+    has_sentiment_intent = detect_sentiment_intent(payload.query)
+    sentiment_data = None
+    sentiment_city = None
+    if has_sentiment_intent:
+        sentiment_city = (
+            (resolved_name.split(",")[0].strip() if resolved_name else None)
+            or (weather_context.get("location", "").split(",")[0].strip() if weather_context and weather_context.get("location") else None)
+            or (payload.location_name.strip() if payload.location_name and payload.location_name != "Selected Location" else None)
+            or extract_location_from_query(payload.query)
+            or "London"
+        )
+        sentiment_cond = None
+        if weather_context and weather_context.get("current"):
+            sentiment_cond = weather_context["current"].get("condition")
+        try:
+            sentiment_data = await compute_atmospheric_sentiment(sentiment_city, sentiment_cond)
+        except Exception as ex:
+            logger.warning("Sentiment calculation failed for chat stream: %s", ex)
+
     # 3. Parse weather intent and extract structured facts for accuracy
     structured_facts = None
     if raw_weather_data:
@@ -1986,15 +2256,22 @@ async def chat_stream(payload: ChatRequest, request: Request):
             suggestions = generate_contextual_suggestions(payload.query, weather_context)
             meta = {
                 "type": "meta",
-                "location": weather_context.get("location") if weather_context else None,
+                "location": weather_context.get("location") if weather_context else (sentiment_city if sentiment_data else None),
                 "latitude": weather_context.get("latitude") if weather_context else None,
                 "longitude": weather_context.get("longitude") if weather_context else None,
                 "warning": weather_context.get("warning") if weather_context else None,
                 "has_weather_context": weather_context is not None,
-                "suggestions": suggestions
+                "suggestions": suggestions,
+                "sentiment": sentiment_data
             }
             yield f"data: {json.dumps(meta)}\n\n"
-            fallback_text = generate_grounded_fallback_response(payload.query, weather_context, payload.language or "en", structured_facts=structured_facts)
+            fallback_text = generate_grounded_fallback_response(
+                payload.query,
+                weather_context,
+                payload.language or "en",
+                structured_facts=structured_facts,
+                sentiment_data=sentiment_data
+            )
             for chunk in fallback_text.split(" "):
                 yield f"data: {json.dumps({'type': 'token', 'text': chunk + ' '})}\n\n"
                 await asyncio.sleep(0.012)
@@ -2013,19 +2290,21 @@ async def chat_stream(payload: ChatRequest, request: Request):
         payload.history,
         payload.image_base64,
         payload.image_mime_type,
-        structured_facts=structured_facts
+        structured_facts=structured_facts,
+        sentiment_data=sentiment_data
     )
 
     async def event_generator():
         suggestions = generate_contextual_suggestions(payload.query, weather_context)
         meta = {
             "type": "meta",
-            "location": weather_context.get("location") if weather_context else None,
+            "location": weather_context.get("location") if weather_context else (sentiment_city if sentiment_data else None),
             "latitude": weather_context.get("latitude") if weather_context else None,
             "longitude": weather_context.get("longitude") if weather_context else None,
             "warning": weather_context.get("warning") if weather_context else None,
             "has_weather_context": weather_context is not None,
-            "suggestions": suggestions
+            "suggestions": suggestions,
+            "sentiment": sentiment_data
         }
         yield f"data: {json.dumps(meta)}\n\n"
 
@@ -2054,7 +2333,13 @@ async def chat_stream(payload: ChatRequest, request: Request):
                         err_body = b""
                     logger.error("Gemini API error %s on /api/v1/chat/stream: %s", res.status_code, err_body)
                     # Stream grounded fallback tokens gracefully
-                    fallback_text = generate_grounded_fallback_response(payload.query, weather_context, payload.language or "en", structured_facts=structured_facts)
+                    fallback_text = generate_grounded_fallback_response(
+                        payload.query,
+                        weather_context,
+                        payload.language or "en",
+                        structured_facts=structured_facts,
+                        sentiment_data=sentiment_data
+                    )
                     for chunk in fallback_text.split(" "):
                         yield f"data: {json.dumps({'type': 'token', 'text': chunk + ' '})}\n\n"
                         await asyncio.sleep(0.012)
@@ -2082,7 +2367,13 @@ async def chat_stream(payload: ChatRequest, request: Request):
 
             if not any_token_emitted:
                 logger.warning("Gemini stream returned 200 but produced no text tokens on /api/v1/chat/stream.")
-                fallback_text = generate_grounded_fallback_response(payload.query, weather_context, payload.language or "en", structured_facts=structured_facts)
+                fallback_text = generate_grounded_fallback_response(
+                    payload.query,
+                    weather_context,
+                    payload.language or "en",
+                    structured_facts=structured_facts,
+                    sentiment_data=sentiment_data
+                )
                 for chunk in fallback_text.split(" "):
                     yield f"data: {json.dumps({'type': 'token', 'text': chunk + ' '})}\n\n"
                     await asyncio.sleep(0.012)

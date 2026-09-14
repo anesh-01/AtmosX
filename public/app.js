@@ -24,6 +24,11 @@ const API_BASE_URL = window.location.protocol === 'file:'
   ? 'http://localhost:8000'
   : '';
 
+// ── Splash screen state flag ───────────────────────────────────────────────
+// Set to false after the 5-second splash completes.
+// Prevents any search/fetch overlay from firing during initial load.
+let isInitialLoad = true;
+
 // ============================================================================
 // 2. LANGUAGE SYSTEM
 // ============================================================================
@@ -229,6 +234,11 @@ const DOM = {
   heroConditionText:          document.getElementById('heroConditionText'),
   heroFeelsText:              document.getElementById('heroFeelsText'),
   heroConditionSvg:           document.getElementById('heroConditionSvg'),
+  dynamicWeatherIcon:         document.getElementById('dynamic-weather-icon'),
+  mainWeatherIcon:            document.getElementById('dynamic-weather-icon') || document.getElementById('main-weather-icon'),
+  cityMoodWidget:             document.getElementById('cityMoodWidget'),
+  moodScore:                  document.getElementById('mood-score'),
+  moodEmoji:                  document.getElementById('mood-emoji'),
   heroStatHumidity:           document.getElementById('heroStatHumidity'),
   heroStatWind:               document.getElementById('heroStatWind'),
   heroStatPressure:           document.getElementById('heroStatPressure'),
@@ -1397,6 +1407,132 @@ function updateHeroConditionPill(conditionText, tempC, tempMin, tempMax, wxCode)
     const use = DOM.heroWxIcon.querySelector('use');
     if (use) use.setAttribute('href', `#${iconId}`);
   }
+  updateDynamicWeatherIcon(conditionText);
+}
+
+const weatherEmojis = { 'Clear': '☀️', 'Clouds': '☁️', 'Rain': '🌧️', 'Drizzle': '🌦️', 'Thunderstorm': '⛈️', 'Snow': '❄️', 'Mist': '🌫️', 'Fog': '🌫️' };
+
+function getConditionEmoji(condition) {
+  if (!condition) return '🌡️';
+  if (weatherEmojis[condition]) return weatherEmojis[condition];
+  const c = String(condition).trim().toLowerCase();
+  if (c.includes('clear') || c.includes('sun')) return weatherEmojis['Clear'];
+  if (c.includes('thunder') || c.includes('storm')) return weatherEmojis['Thunderstorm'];
+  if (c.includes('snow') || c.includes('blizzard') || c.includes('ice') || c.includes('sleet') || c.includes('hail')) return weatherEmojis['Snow'];
+  if (c.includes('drizzle')) return weatherEmojis['Drizzle'];
+  if (c.includes('rain') || c.includes('shower')) return weatherEmojis['Rain'];
+  if (c.includes('fog')) return weatherEmojis['Fog'];
+  if (c.includes('mist') || c.includes('haze')) return weatherEmojis['Mist'];
+  if (c.includes('cloud') || c.includes('overcast')) return weatherEmojis['Clouds'];
+  return '🌡️';
+}
+
+function updateDynamicWeatherIcon(condition) {
+  const emoji = weatherEmojis[condition] || getConditionEmoji(condition) || '🌡️';
+  const target = document.getElementById('dynamic-weather-icon') || document.getElementById('main-weather-icon');
+  if (target) {
+    target.textContent = emoji;
+  }
+  return emoji;
+}
+
+/**
+ * Atmospheric Sentiment Analysis:
+ * Trigger secondary fetch() to /api/mood?city=... immediately after main weather data resolves.
+ * Passes the returned score into updateMetricWithFlip('mood-score', data.score + '%').
+ * Updates textContent of #mood-emoji.
+ * Dynamically removes existing .mood-* classes from widget container and applies new one.
+ */
+async function fetchCityMood(city, condition = '') {
+  if (!city) return;
+  const cityName = city.split(',')[0].trim();
+  const widget = document.getElementById('cityMoodWidget') || document.querySelector('.city-mood-widget');
+  const moodEmoji = document.getElementById('mood-emoji');
+
+  try {
+    let url = `${API_BASE_URL}/api/mood?city=${encodeURIComponent(cityName)}`;
+    if (condition) {
+      url += `&weather_condition=${encodeURIComponent(condition)}`;
+    }
+    const res = await fetch(url);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    // Pass returned score into updateMetricWithFlip('mood-score', data.score + '%')
+    if (data.score != null) {
+      updateMetricWithFlip('mood-score', data.score + '%');
+    }
+
+    // Update textContent of #mood-emoji
+    if (moodEmoji && data.emoji) {
+      moodEmoji.textContent = data.emoji;
+    }
+
+    // Dynamically remove existing .mood-* classes from widget container and apply new one
+    if (widget && data.sentiment) {
+      widget.classList.remove('mood-positive', 'mood-neutral', 'mood-negative');
+      widget.classList.add(`mood-${data.sentiment.toLowerCase()}`);
+    }
+  } catch (err) {
+    console.warn('Atmospheric sentiment fetch error:', err.message);
+  }
+}
+
+/**
+ * Maps a weather condition string (e.g. "Clear sky", "Partly cloudy", "Rain", "Thunderstorm", "Snow", "Foggy")
+ * or WMO weather code to an appropriate visual icon (SVG or emoji).
+ * @param {string} condition - Weather condition description string
+ * @param {number|null} [code] - Optional WMO weather code fallback
+ * @returns {string} Visual icon markup (SVG element with aria/emoji support)
+ */
+function mapConditionToVisualIcon(condition, code = null) {
+  const cond = String(condition || '').trim().toLowerCase();
+  let symbolId = 'i-wx-cloud';
+  let emoji = '⛅';
+
+  if (cond.includes('thunder') || cond.includes('storm') || cond.includes('lightning') || cond.includes('squall')) {
+    symbolId = 'i-wx-storm';
+    emoji = '⛈️';
+  } else if (cond.includes('snow') || cond.includes('blizzard') || cond.includes('ice') || cond.includes('sleet') || cond.includes('hail') || cond.includes('flurr')) {
+    symbolId = 'i-wx-snow';
+    emoji = '❄️';
+  } else if (cond.includes('rain') || cond.includes('drizzle') || cond.includes('shower') || cond.includes('precip')) {
+    symbolId = 'i-wx-rain';
+    emoji = '🌧️';
+  } else if (cond.includes('clear') || cond.includes('sunny') || cond.includes('fair')) {
+    symbolId = 'i-wx-sun';
+    emoji = '☀️';
+  } else if (cond.includes('partly') || cond.includes('scattered') || cond.includes('few clouds') || cond.includes('broken')) {
+    symbolId = 'i-wx-partly-cloudy';
+    emoji = '⛅';
+  } else if (cond.includes('fog') || cond.includes('mist') || cond.includes('haze') || cond.includes('smoke')) {
+    symbolId = 'i-wx-cloud';
+    emoji = '🌫️';
+  } else if (cond.includes('wind') || cond.includes('breeze') || cond.includes('gale') || cond.includes('gust')) {
+    symbolId = 'i-wx-wind';
+    emoji = '💨';
+  } else if (cond.includes('overcast') || cond.includes('cloud')) {
+    symbolId = 'i-wx-cloud';
+    emoji = '☁️';
+  } else if (code != null) {
+    symbolId = getWeatherIconSymbol(code);
+    if (symbolId === 'i-wx-sun') emoji = '☀️';
+    else if (symbolId === 'i-wx-partly-cloudy') emoji = '⛅';
+    else if (symbolId === 'i-wx-rain') emoji = '🌧️';
+    else if (symbolId === 'i-wx-snow') emoji = '❄️';
+    else if (symbolId === 'i-wx-storm') emoji = '⛈️';
+    else if (symbolId === 'i-wx-wind') emoji = '💨';
+    else emoji = '☁️';
+  }
+
+  return `<svg class="hero-big-svg" id="heroConditionSvg" aria-label="${emoji} ${condition || 'Weather'}" data-emoji="${emoji}"><use href="#${symbolId}"/></svg>`;
+}
+
+function updateMainWeatherIcon(condition, code = null) {
+  const container = document.getElementById('main-weather-icon');
+  if (!container) return;
+  const iconMarkup = mapConditionToVisualIcon(condition, code);
+  container.innerHTML = iconMarkup;
 }
 
 let lastPressureHpa = null;
@@ -2168,16 +2304,19 @@ function updateHeroWeatherOverview(data) {
   const iconId = getWeatherIconSymbol(w.weather_code);
 
   if (DOM.heroLocationName) DOM.heroLocationName.textContent = data.location || (state.currentStation ? state.currentStation.name : 'Selected City');
-  if (DOM.heroLargeTemp && w.temperature_2m != null) DOM.heroLargeTemp.textContent = `${Math.round(w.temperature_2m)}°`;
+  if (DOM.heroLargeTemp && w.temperature_2m != null) updateMetricWithFlip('heroLargeTemp', `${Math.round(w.temperature_2m)}°`);
   if (DOM.heroConditionText) DOM.heroConditionText.textContent = cond;
-  if (DOM.heroFeelsText && w.apparent_temperature != null) DOM.heroFeelsText.textContent = `Feels like ${Math.round(w.apparent_temperature)}°C`;
-  if (DOM.heroStatHumidity && w.relative_humidity_2m != null) DOM.heroStatHumidity.textContent = `${Math.round(w.relative_humidity_2m)}% Hum`;
-  if (DOM.heroStatWind && w.wind_speed_10m != null) DOM.heroStatWind.textContent = `${Math.round(w.wind_speed_10m)} km/h`;
-  if (DOM.heroStatPressure && w.pressure_msl != null) DOM.heroStatPressure.textContent = `${Math.round(w.pressure_msl)} hPa`;
+  if (DOM.heroFeelsText && w.apparent_temperature != null) updateMetricWithFlip('heroFeelsText', `Feels like ${Math.round(w.apparent_temperature)}°C`);
+  if (DOM.heroStatHumidity && w.relative_humidity_2m != null) updateMetricWithFlip('heroStatHumidity', `${Math.round(w.relative_humidity_2m)}% Hum`);
+  if (DOM.heroStatWind && w.wind_speed_10m != null) updateMetricWithFlip('heroStatWind', `${Math.round(w.wind_speed_10m)} km/h`);
+  if (DOM.heroStatPressure && w.pressure_msl != null) updateMetricWithFlip('heroStatPressure', `${Math.round(w.pressure_msl)} hPa`);
 
   if (DOM.heroConditionSvg) {
     DOM.heroConditionSvg.innerHTML = `<use href="#${iconId}"/>`;
   }
+
+  // Live update: map the fetched weather condition to an emoji (default to '🌡️' if not found) and set it as textContent of #dynamic-weather-icon
+  updateDynamicWeatherIcon(cond);
 
   // Populate Hero Hourly Carousel (Next 12 slots)
   if (DOM.heroHourlyCarousel && h.time) {
@@ -2221,26 +2360,31 @@ async function refreshDashboardWeather(station) {
     const d = data.daily_weather || {};
     const h = data.hourly_weather || {};
 
-    // Standard DOM texts
-    if (w.temperature_2m    != null && DOM.valTemp)      DOM.valTemp.textContent      = `${Math.round(w.temperature_2m)}°C`;
-    if (w.apparent_temperature != null && DOM.valTempSub) DOM.valTempSub.textContent  = `Actual ${Number(w.temperature_2m).toFixed(1)}°C`;
-    if (w.relative_humidity_2m != null && DOM.valHumidity) DOM.valHumidity.textContent = `${Math.round(w.relative_humidity_2m)}% Humidity`;
-    if (w.pressure_msl       != null && DOM.valPressure) DOM.valPressure.textContent  = `${Number(w.pressure_msl).toFixed(1)}`;
-    if (w.wind_speed_10m     != null && DOM.valWind)     DOM.valWind.textContent       = `${Number(w.wind_speed_10m).toFixed(1)}`;
+    // Standard DOM texts with slot-machine reel flip animation (isolated updates)
+    if (w.temperature_2m    != null && DOM.valTemp)      updateMetricWithFlip('valTemp',      `${Math.round(w.temperature_2m)}°C`);
+    if (w.apparent_temperature != null && DOM.valTempSub) updateMetricWithFlip('valTempSub',  `Actual ${Number(w.temperature_2m).toFixed(1)}°C`);
+    if (w.relative_humidity_2m != null && DOM.valHumidity) updateMetricWithFlip('valHumidity', `${Math.round(w.relative_humidity_2m)}% Humidity`);
+    if (w.pressure_msl       != null && DOM.valPressure) updateMetricWithFlip('valPressure',  `${Number(w.pressure_msl).toFixed(1)}`);
+    if (w.wind_speed_10m     != null && DOM.valWind)     updateMetricWithFlip('valWind',      `${Number(w.wind_speed_10m).toFixed(1)}`);
     if (w.wind_direction_10m != null && DOM.valWindSub)  DOM.valWindSub.textContent   = `Heading: ${data.wind_direction_label || getWindDir(w.wind_direction_10m)}`;
-    if (w.precipitation      != null && DOM.valRain)     DOM.valRain.textContent       = `${Number(w.precipitation).toFixed(1)}`;
+    if (w.precipitation      != null && DOM.valRain)     updateMetricWithFlip('valRain',      `${Number(w.precipitation).toFixed(1)}`);
 
     // Modern Glassmorphism Widgets Update
     const cond = data.condition || getWeatherCondition(w.weather_code);
     const tMin = d.temperature_2m_min?.[0] ?? (w.temperature_2m != null ? w.temperature_2m - 2 : 20);
     const tMax = d.temperature_2m_max?.[0] ?? (w.temperature_2m != null ? w.temperature_2m + 2 : 25);
     updateHeroConditionPill(cond, w.temperature_2m, tMin, tMax, w.weather_code);
+    updateDynamicWeatherIcon(cond);
     updatePressureMeter(w.pressure_msl, h, w.surface_pressure);
     updateRadialGauges(w, d, data.wind_direction_label);
     if (data.air_quality) updateAqiCard(data.air_quality);
     updateRainfallWaveChart(h);
     updateHourlyTimeline(h);
     updateHeroWeatherOverview(data);
+
+    // Trigger secondary fetch to /api/mood?city=... immediately after main weather data resolves
+    const searchCity = data.location ? data.location.split(',')[0].trim() : (station.name || 'City');
+    fetchCityMood(searchCity, cond).catch(() => {});
 
     // Weather Pulse Trend Intelligence & Solar Cycle
     updateWeatherPulse(w, h, d);
@@ -3379,6 +3523,7 @@ function initEvents() {
         showToast(`Switched to ${loc.name}`, 'success');
         await refreshDashboardWeather(station);
         startLiveDashboardRefresh(station);
+        fetchCityMood(loc.name).catch(() => {});
       }
     } catch (e) {
       console.warn('City resolution error:', e);
@@ -3428,8 +3573,17 @@ function initEvents() {
       stopLiveCamera();
     }
   });
+  const citySearchForm = document.getElementById('citySearchForm');
+  if (citySearchForm) {
+    citySearchForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const q = (DOM.inputSearchCity?.value || '').trim();
+      if (q) selectCityByName(q);
+    });
+  }
   if (DOM.btnSearchCity) {
-    DOM.btnSearchCity.addEventListener('click', () => {
+    DOM.btnSearchCity.addEventListener('click', (e) => {
+      if (e && e.preventDefault) e.preventDefault();
       const q = (DOM.inputSearchCity?.value || '').trim();
       if (q) selectCityByName(q);
     });
@@ -3851,3 +4005,411 @@ if (document.readyState === 'loading') {
 // Canonical Pipeline Exports
 window.submitQuery = handleSend;
 window.handleSend = handleSend;
+
+// ============================================================================
+// ATMOS-X UI ANIMATIONS MODULE
+// Phase 2: Contextual Weather Loader  |  Phase 3: Dynamic Effects
+// ============================================================================
+
+// ── Phase 2: Loader element (injected once into the DOM) ──────────────────
+const _loaderHTML = `
+<div id="atmosLoader" class="atmos-loader" aria-live="polite" aria-label="Loading weather data">
+  <div class="atmos-loader-sun">
+    <div class="atmos-loader-ring"></div>
+    <div class="atmos-loader-rays"></div>
+    <div class="atmos-loader-core"></div>
+  </div>
+  <span class="atmos-loader-label">Fetching live telemetry…</span>
+</div>
+<div id="atmosLoaderError" class="atmos-loader-error" aria-live="assertive" role="alert">
+  <span>⚡</span>
+  <span id="atmosLoaderErrorMsg">Unable to fetch weather data. Please try again.</span>
+</div>`;
+
+function _injectLoader() {
+  if (document.getElementById('atmosLoader')) return;
+  const target = DOM.messagesContainer || document.body;
+  const wrapper = document.createElement('div');
+  wrapper.innerHTML = _loaderHTML;
+  while (wrapper.firstChild) target.prepend(wrapper.firstChild);
+}
+
+function showWeatherLoader(labelText) {
+  _injectLoader();
+  const loader = document.getElementById('atmosLoader');
+  const errEl  = document.getElementById('atmosLoaderError');
+  if (loader) {
+    const lbl = loader.querySelector('.atmos-loader-label');
+    if (lbl && labelText) lbl.textContent = labelText;
+    loader.classList.add('active');
+  }
+  if (errEl) errEl.classList.remove('active');
+}
+
+function hideWeatherLoader() {
+  const loader = document.getElementById('atmosLoader');
+  if (loader) loader.classList.remove('active');
+}
+
+function showWeatherLoaderError(msg) {
+  hideWeatherLoader();
+  _injectLoader();
+  const errEl  = document.getElementById('atmosLoaderError');
+  const msgEl  = document.getElementById('atmosLoaderErrorMsg');
+  if (errEl) {
+    if (msgEl) msgEl.textContent = msg || 'Unable to fetch weather data. Please try again.';
+    errEl.classList.add('active');
+    // Auto-dismiss after 5s
+    setTimeout(() => errEl.classList.remove('active'), 5000);
+  }
+}
+
+// Expose loader API globally for use from refreshDashboardWeather patch
+window.atmosUI = { showWeatherLoader, hideWeatherLoader, showWeatherLoaderError };
+
+// ── Silent dashboard refresh — runs in background without loader / overlay ──
+const _origRefreshDashboard = refreshDashboardWeather;
+async function refreshDashboardWeatherSilent(station) {
+  try {
+    await _origRefreshDashboard(station);
+    _applyWeatherStateClass(state.latestWeatherData);
+  } catch (e) {
+    console.warn('[AtmosX UI] Dashboard refresh error:', e.message);
+  }
+}
+window.refreshDashboardWeather = refreshDashboardWeatherSilent;
+
+// ── Phase 3: Weather-state body background class toggler ─────────────────
+const WEATHER_STATE_CLASSES = ['bg-sunny', 'bg-rainy', 'bg-stormy', 'bg-cloudy', 'bg-foggy', 'bg-snowy'];
+
+function _weatherCodeToStateClass(code) {
+  const c = Number(code);
+  if (c === 0 || c === 1)                                    return 'bg-sunny';
+  if (c === 2 || c === 3)                                    return 'bg-cloudy';
+  if (c === 45 || c === 48)                                  return 'bg-foggy';
+  if ([51, 53, 55, 61, 63, 65, 80, 81, 82].includes(c))     return 'bg-rainy';
+  if ([71, 73, 75, 77, 85, 86].includes(c))                  return 'bg-snowy';
+  if ([95, 96, 99].includes(c))                              return 'bg-stormy';
+  return 'bg-cloudy';
+}
+
+function _conditionTextToStateClass(condText) {
+  if (!condText) return null;
+  const lc = condText.toLowerCase();
+  if (lc.includes('thunder') || lc.includes('storm') || lc.includes('cyclone') || lc.includes('lightning')) return 'bg-stormy';
+  if (lc.includes('rain') || lc.includes('shower') || lc.includes('drizzle') || lc.includes('flood'))       return 'bg-rainy';
+  if (lc.includes('snow') || lc.includes('hail') || lc.includes('sleet'))                                   return 'bg-snowy';
+  if (lc.includes('fog') || lc.includes('mist') || lc.includes('haze'))                                     return 'bg-foggy';
+  if (lc.includes('cloud') || lc.includes('overcast'))                                                      return 'bg-cloudy';
+  if (lc.includes('clear') || lc.includes('sunny') || lc.includes('fair') || lc.includes('warm'))           return 'bg-sunny';
+  return null;
+}
+
+function _applyWeatherStateClass(data) {
+  if (!data) return;
+  const code      = data.current?.weather_code;
+  const condText  = data.condition || '';
+  let stateClass  = (code != null) ? _weatherCodeToStateClass(code) : _conditionTextToStateClass(condText);
+  if (!stateClass) stateClass = _conditionTextToStateClass(condText) || 'bg-cloudy';
+
+  // Remove all existing state classes, then add the new one
+  document.body.classList.remove(...WEATHER_STATE_CLASSES);
+  document.body.classList.add(stateClass);
+}
+
+// Also apply class from static station data (WEATHER_STATIONS) when renderEvidence fires
+const _origRenderEvidence = renderEvidence;
+function renderEvidenceAnimated(loc, scanned) {
+  _origRenderEvidence(loc, scanned);
+
+  // Apply weather-state class from station condition text
+  if (loc?.forecast?.condition) {
+    const cls = _conditionTextToStateClass(loc.forecast.condition);
+    if (cls) {
+      document.body.classList.remove(...WEATHER_STATE_CLASSES);
+      document.body.classList.add(cls);
+    }
+  }
+
+  // Phase 3: Staggered fade-in for evidence cards
+  if (DOM.evidenceBody) {
+    const cards = DOM.evidenceBody.querySelectorAll('.evidence-card');
+    cards.forEach((card, idx) => {
+      card.classList.remove('fade-in-stagger');
+      // Force reflow to restart animation
+      void card.offsetWidth;
+      card.style.setProperty('--stagger-index', String(idx));
+      card.classList.add('fade-in-stagger');
+    });
+  }
+}
+// Override global
+window.renderEvidence = renderEvidenceAnimated;
+
+// ── Phase 3: Staggered fade-in for hourly timeline slots ─────────────────
+const _origUpdateHourlyTimeline = updateHourlyTimeline;
+function updateHourlyTimelineAnimated(hourly) {
+  _origUpdateHourlyTimeline(hourly);
+  if (!DOM.hourlyScrollTrack) return;
+  const slots = DOM.hourlyScrollTrack.querySelectorAll('.hourly-slot, .hero-slot-card');
+  slots.forEach((slot, idx) => {
+    slot.style.setProperty('--stagger-index', String(idx));
+    slot.classList.add('fade-in-stagger');
+  });
+}
+window.updateHourlyTimeline = updateHourlyTimelineAnimated;
+
+// ── Phase 3: Staggered fade-in for hero hourly carousel ──────────────────
+const _origUpdateHeroOverview = typeof updateHeroWeatherOverview === 'function' ? updateHeroWeatherOverview : null;
+if (_origUpdateHeroOverview) {
+  window.updateHeroWeatherOverview = function(data) {
+    _origUpdateHeroOverview(data);
+    if (DOM.heroHourlyCarousel) {
+      const cards = DOM.heroHourlyCarousel.querySelectorAll('.hero-slot-card');
+      cards.forEach((c, i) => {
+        c.style.setProperty('--stagger-index', String(i));
+        c.classList.add('fade-in-stagger');
+      });
+    }
+  };
+}
+
+// Re-bind top-level exports silently (no overlay/splash triggers during queries)
+window.submitQuery = submitQuery;
+window.handleSend  = submitQuery;
+window.fetchDashboardWeather = fetchDashboardWeather;
+window.callBackendChatStream = callBackendChatStream;
+window.weatherEmojis = weatherEmojis;
+window.getConditionEmoji = getConditionEmoji;
+window.updateDynamicWeatherIcon = updateDynamicWeatherIcon;
+window.fetchCityMood = fetchCityMood;
+
+// ============================================================================
+// 5-SECOND CINEMATIC SPLASH SCREEN (Isolated DOMContentLoaded Sequence)
+// Triggers its 5000ms setTimeout, hides the splash screen, never called again.
+// ============================================================================
+document.addEventListener('DOMContentLoaded', () => {
+  const splash = document.getElementById('splash-screen');
+  if (!splash) return;
+
+  setTimeout(() => {
+    splash.classList.add('hide-splash');
+    // Remove from DOM after fade transition to release memory
+    setTimeout(() => {
+      if (splash && splash.parentNode) {
+        splash.parentNode.removeChild(splash);
+      }
+    }, 1000);
+    if (typeof isInitialLoad !== 'undefined') {
+      isInitialLoad = false;
+    }
+  }, 5000);
+});
+
+
+// ============================================================================
+// STOP FORM SUBMISSIONS: Attach event.preventDefault() directly to search & form submit
+// ============================================================================
+document.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
+window.addEventListener('submit', (event) => {
+  event.preventDefault();
+});
+
+// ============================================================================
+// REEL FLIP ANIMATION MODULE (Isolated Value Updates)
+// updateMetricWithFlip(elementId, newValue)
+// Stacks old and new values in .flip-reel, slides without layout shifts, cleans up on transitionend
+// ============================================================================
+
+/**
+ * Isolated Value Updates: updateMetricWithFlip(elementId, newValue)
+ * Dynamically stacks the old and new values into the .flip-reel,
+ * triggers the slide without layout shifts, and cleans up the DOM on transitionend.
+ *
+ * @param {string|HTMLElement} elementId - The target element or its DOM ID
+ * @param {string|number} newValue      - The new value to display
+ */
+function updateMetricWithFlip(elementId, newValue) {
+  if (elementId == null || newValue == null) return;
+  const el = typeof elementId === 'string' ? document.getElementById(elementId) : elementId;
+  if (!el) return;
+
+  const valStr = String(newValue);
+
+  // Check if counter & reel are already initialized inside element
+  let counter = el.classList.contains('flip-counter') ? el : el.querySelector('.flip-counter');
+  let reel = counter ? counter.querySelector('.flip-reel') : null;
+
+  if (!counter || !reel) {
+    // Isolate change to text node — never wipe card containers via innerHTML
+    const existingText = el.textContent.trim();
+    el.textContent = '';
+
+    counter = document.createElement('span');
+    counter.className = 'flip-counter';
+
+    reel = document.createElement('span');
+    reel.className = 'flip-reel';
+
+    const item = document.createElement('span');
+    item.className = 'flip-item';
+    item.textContent = existingText || valStr;
+    reel.appendChild(item);
+
+    counter.appendChild(reel);
+    el.appendChild(counter);
+
+    // Initial placeholder bypass without animation
+    if (!existingText || existingText === '--' || existingText === '--°C' || existingText === '--%' || existingText === '--°') {
+      item.textContent = valStr;
+      return;
+    }
+  }
+
+  // Inspect current visible value (last .flip-item)
+  const currentItem = reel.querySelector('.flip-item:last-child') || reel.lastElementChild;
+  if (currentItem && currentItem.textContent.trim() === valStr.trim()) {
+    return; // Value unchanged, no flip needed
+  }
+
+  // During initial splash screen load, update directly without animation
+  if (typeof isInitialLoad !== 'undefined' && isInitialLoad) {
+    if (currentItem) {
+      currentItem.textContent = valStr;
+    } else {
+      const item = document.createElement('span');
+      item.className = 'flip-item';
+      item.textContent = valStr;
+      reel.appendChild(item);
+    }
+    return;
+  }
+
+  // Clean up any in-flight transition on this reel before stacking
+  if (reel._transitionTimer) {
+    clearTimeout(reel._transitionTimer);
+    reel._transitionTimer = null;
+  }
+  if (reel._onEnd) {
+    reel.removeEventListener('transitionend', reel._onEnd);
+    reel._onEnd = null;
+  }
+  while (reel.children.length > 1) {
+    reel.removeChild(reel.firstElementChild);
+  }
+  reel.style.transition = 'none';
+  reel.classList.remove('animate-flip');
+  reel.style.transform = 'none';
+  void reel.offsetHeight; // force layout reflow
+  reel.style.transition = '';
+  reel.style.transform = '';
+
+  // Ensure current visible item has .flip-item class
+  let oldItem = reel.querySelector('.flip-item:last-child') || reel.lastElementChild;
+  if (!oldItem) {
+    oldItem = document.createElement('span');
+    oldItem.className = 'flip-item';
+    oldItem.textContent = reel.textContent || '';
+    reel.textContent = '';
+    reel.appendChild(oldItem);
+  }
+
+  // Dynamically stack the new value into the .flip-reel
+  const newItem = document.createElement('span');
+  newItem.className = 'flip-item';
+  newItem.textContent = valStr;
+  reel.appendChild(newItem);
+
+  // Clean up the DOM on transitionend
+  const onTransitionEnd = (e) => {
+    if (e && e.target !== reel) return;
+    reel.removeEventListener('transitionend', onTransitionEnd);
+    reel._onEnd = null;
+    if (reel._transitionTimer) {
+      clearTimeout(reel._transitionTimer);
+      reel._transitionTimer = null;
+    }
+
+    // Remove the old value(s), keeping only the latest new value
+    while (reel.children.length > 1) {
+      reel.removeChild(reel.firstElementChild);
+    }
+
+    // Instantly reset track transform and transition without layout shifts
+    reel.style.transition = 'none';
+    reel.classList.remove('animate-flip');
+    reel.style.transform = 'none';
+    void reel.offsetHeight; // force layout reflow
+    reel.style.transition = '';
+    reel.style.transform = '';
+  };
+
+  reel._onEnd = onTransitionEnd;
+  reel.addEventListener('transitionend', onTransitionEnd, { once: true });
+
+  // Safety fallback in case the tab is in the background or transitionend is throttled
+  reel._transitionTimer = setTimeout(onTransitionEnd, 520);
+
+  // Trigger the slide without layout shifts on the next animation frame
+  requestAnimationFrame(() => {
+    requestAnimationFrame(() => {
+      reel.classList.add('animate-flip');
+    });
+  });
+}
+
+// Backward compatibility alias
+const flipUpdate = updateMetricWithFlip;
+window.updateMetricWithFlip = updateMetricWithFlip;
+window.flipUpdate = updateMetricWithFlip;
+
+/**
+ * Topbar ambient pill helper
+ */
+function updateTopbarWeatherPill(w, data) {
+  if (DOM.topbarWeatherText && w.temperature_2m != null) {
+    const cond = data.condition || '';
+    const loc  = data.location  || (state.currentStation?.name || '');
+    updateMetricWithFlip(DOM.topbarWeatherText, `${Math.round(w.temperature_2m)}°C · ${loc} (${cond})`);
+  }
+}
+
+// ============================================================================
+// SCROLL-TRIGGERED POP-UP ANIMATIONS (Intersection Observer API)
+// Mobile-friendly, threshold: 0.15, triggers on scroll up and down
+// Does not alter window properties
+// ============================================================================
+function initScrollReveal() {
+  if (!('IntersectionObserver' in window)) {
+    document.querySelectorAll('.scroll-reveal').forEach((el) => {
+      el.classList.add('is-visible');
+    });
+    return;
+  }
+
+  const scrollObserver = new IntersectionObserver((entries) => {
+    entries.forEach((entry) => {
+      if (entry.isIntersecting) {
+        entry.target.classList.add('is-visible');
+      } else {
+        entry.target.classList.remove('is-visible');
+      }
+    });
+  }, {
+    threshold: 0.15
+  });
+
+  document.querySelectorAll('.scroll-reveal').forEach((el) => {
+    scrollObserver.observe(el);
+  });
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initScrollReveal);
+} else {
+  initScrollReveal();
+}
+
+

@@ -19,6 +19,196 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+
+  <!-- =====================================================================
+       5-SECOND CINEMATIC SPLASH SCREEN
+       Shown once on initial load only. JS adds .hide-splash after 5000ms.
+       ===================================================================== -->
+  <div id="splash-screen" role="presentation" aria-hidden="true">
+
+    <!-- Layer 0: Deep space gradient background -->
+    <div class="ss-bg"></div>
+
+    <!-- Layer 1: Star field SVG (parallax-slow) -->
+    <svg class="ss-layer ss-stars" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle cx="72"   cy="45"  r="1.1" fill="rgba(255,255,255,0.75)"/>
+      <circle cx="190"  cy="130" r="0.8" fill="rgba(200,230,255,0.6)"/>
+      <circle cx="350"  cy="60"  r="1.4" fill="rgba(255,255,255,0.85)"/>
+      <circle cx="480"  cy="200" r="0.9" fill="rgba(180,220,255,0.65)"/>
+      <circle cx="620"  cy="35"  r="1.0" fill="rgba(255,255,255,0.7)"/>
+      <circle cx="760"  cy="110" r="1.3" fill="rgba(200,240,255,0.8)"/>
+      <circle cx="900"  cy="55"  r="0.7" fill="rgba(255,255,255,0.6)"/>
+      <circle cx="1050" cy="160" r="1.2" fill="rgba(210,235,255,0.75)"/>
+      <circle cx="1200" cy="40"  r="1.0" fill="rgba(255,255,255,0.8)"/>
+      <circle cx="1380" cy="120" r="0.9" fill="rgba(200,225,255,0.7)"/>
+      <circle cx="140"  cy="260" r="0.8" fill="rgba(255,255,255,0.5)"/>
+      <circle cx="310"  cy="320" r="1.1" fill="rgba(180,215,255,0.65)"/>
+      <circle cx="550"  cy="280" r="0.9" fill="rgba(255,255,255,0.6)"/>
+      <circle cx="810"  cy="300" r="1.0" fill="rgba(210,240,255,0.7)"/>
+      <circle cx="1100" cy="240" r="0.7" fill="rgba(255,255,255,0.55)"/>
+      <circle cx="1300" cy="310" r="1.2" fill="rgba(195,225,255,0.7)"/>
+      <circle cx="50"   cy="400" r="1.3" fill="rgba(255,255,255,0.65)"/>
+      <circle cx="250"  cy="450" r="0.8" fill="rgba(210,235,255,0.6)"/>
+      <circle cx="700"  cy="410" r="1.1" fill="rgba(255,255,255,0.7)"/>
+      <circle cx="980"  cy="390" r="0.9" fill="rgba(200,230,255,0.65)"/>
+      <circle cx="1150" cy="470" r="1.0" fill="rgba(255,255,255,0.55)"/>
+      <circle cx="1420" cy="420" r="0.8" fill="rgba(215,240,255,0.6)"/>
+    </svg>
+
+    <!-- Layer 2: Atmospheric glow bands (parallax-mid) -->
+    <svg class="ss-layer ss-atmos" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="ssAtmosGlow" cx="50%" cy="72%" r="55%">
+          <stop offset="0%"   stop-color="rgba(91,192,235,0.28)"/>
+          <stop offset="40%"  stop-color="rgba(42,106,178,0.18)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+        </radialGradient>
+        <radialGradient id="ssHorizonBand" cx="50%" cy="100%" r="60%">
+          <stop offset="0%"   stop-color="rgba(30,80,140,0.42)"/>
+          <stop offset="55%"  stop-color="rgba(15,40,80,0.22)"/>
+          <stop offset="100%" stop-color="rgba(0,0,0,0)"/>
+        </radialGradient>
+        <filter id="ssBlur">
+          <feGaussianBlur stdDeviation="32"/>
+        </filter>
+      </defs>
+      <ellipse cx="720" cy="650" rx="700" ry="320" fill="url(#ssHorizonBand)" filter="url(#ssBlur)"/>
+      <ellipse cx="720" cy="500" rx="500" ry="280" fill="url(#ssAtmosGlow)"  filter="url(#ssBlur)"/>
+      <!-- Subtle cloud wisps -->
+      <ellipse cx="300" cy="620" rx="220" ry="38" fill="rgba(130,175,215,0.09)" filter="url(#ssBlur)"/>
+      <ellipse cx="1100" cy="600" rx="200" ry="32" fill="rgba(110,160,205,0.08)" filter="url(#ssBlur)"/>
+      <ellipse cx="700" cy="680" rx="340" ry="44" fill="rgba(120,170,210,0.10)" filter="url(#ssBlur)"/>
+    </svg>
+
+    <!-- Layer 3: Large glowing sun (parallax-fast / focal point) -->
+    <svg class="ss-layer ss-sun" viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <defs>
+        <radialGradient id="ssSunGrad" cx="38%" cy="36%" r="65%">
+          <stop offset="0%"   stop-color="#FFF8DC"/>
+          <stop offset="30%"  stop-color="#FDB813"/>
+          <stop offset="75%"  stop-color="#F57C00"/>
+          <stop offset="100%" stop-color="#E65100"/>
+        </radialGradient>
+        <radialGradient id="ssSunGlow" cx="50%" cy="50%" r="50%">
+          <stop offset="0%"   stop-color="rgba(253,184,19,0.45)"/>
+          <stop offset="55%"  stop-color="rgba(253,184,19,0.15)"/>
+          <stop offset="100%" stop-color="rgba(253,184,19,0)"/>
+        </radialGradient>
+        <filter id="ssSunBlur">
+          <feGaussianBlur stdDeviation="22"/>
+        </filter>
+        <filter id="ssRayBlur">
+          <feGaussianBlur stdDeviation="4"/>
+        </filter>
+      </defs>
+      <!-- Outer corona glow -->
+      <circle cx="200" cy="200" r="195" fill="url(#ssSunGlow)" filter="url(#ssSunBlur)" class="ss-corona"/>
+      <!-- Mid halo ring -->
+      <circle cx="200" cy="200" r="115" fill="rgba(253,200,60,0.14)" filter="url(#ssSunBlur)" class="ss-halo"/>
+      <!-- Rotating rays -->
+      <g class="ss-rays" transform-origin="200 200">
+        <line x1="200" y1="10"  x2="200" y2="60"  stroke="#FDB813" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+        <line x1="200" y1="340" x2="200" y2="390" stroke="#FDB813" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+        <line x1="10"  y1="200" x2="60"  y2="200" stroke="#FDB813" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+        <line x1="340" y1="200" x2="390" y2="200" stroke="#FDB813" stroke-width="5" stroke-linecap="round" opacity="0.85"/>
+        <line x1="48"  y1="48"  x2="83"  y2="83"  stroke="#FDB813" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+        <line x1="317" y1="317" x2="352" y2="352" stroke="#FDB813" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+        <line x1="352" y1="48"  x2="317" y2="83"  stroke="#FDB813" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+        <line x1="83"  y1="317" x2="48"  y2="352" stroke="#FDB813" stroke-width="4" stroke-linecap="round" opacity="0.65"/>
+      </g>
+      <!-- Sun disc -->
+      <circle cx="200" cy="200" r="88" fill="url(#ssSunGrad)" class="ss-disc"/>
+      <!-- Highlight -->
+      <ellipse cx="170" cy="165" rx="28" ry="20" fill="rgba(255,255,255,0.28)" class="ss-disc"/>
+    </svg>
+
+    <!-- Layer 4: Foreground content — Logo + tagline -->
+    <div class="ss-foreground">
+      <div class="ss-logo-wrap">
+        <svg class="ss-logo-icon" viewBox="0 0 44 40" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+          <!-- Reuse the brand icon paths inline -->
+          <defs>
+            <radialGradient id="ssBrandSun" cx="35%" cy="35%" r="65%">
+              <stop offset="0%" stop-color="#FFF3C4"/>
+              <stop offset="50%" stop-color="#FDB813"/>
+              <stop offset="100%" stop-color="#F57C00"/>
+            </radialGradient>
+          </defs>
+          <circle cx="22" cy="13" r="8" fill="url(#ssBrandSun)"/>
+          <line x1="22" y1="1"  x2="22" y2="5"  stroke="#FDB813" stroke-width="2" stroke-linecap="round"/>
+          <line x1="22" y1="21" x2="22" y2="25" stroke="#FDB813" stroke-width="2" stroke-linecap="round"/>
+          <line x1="10" y1="13" x2="14" y2="13" stroke="#FDB813" stroke-width="2" stroke-linecap="round"/>
+          <line x1="30" y1="13" x2="34" y2="13" stroke="#FDB813" stroke-width="2" stroke-linecap="round"/>
+          <path d="M8 32 Q14 22 22 22 Q30 22 36 32" stroke="rgba(91,192,235,0.85)" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+          <path d="M4 38 Q13 26 22 26 Q31 26 40 38" stroke="rgba(91,192,235,0.55)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+        </svg>
+        <div class="ss-wordmark">
+          <span class="ss-word-atmos">Atmos</span><span class="ss-word-x">X</span>
+        </div>
+      </div>
+      <p class="ss-tagline">Climate Intelligence &amp; Atmospheric Observatory</p>
+      <div class="ss-progress-wrap">
+        <div class="ss-progress-bar"></div>
+      </div>
+      <p class="ss-version">v2.0 · SIH26068</p>
+    </div>
+
+  </div>
+
+  <!-- FULL-SCREEN LOADING OVERLAY (for data fetches, not the splash) -->
+  <div id="loading-overlay" class="hidden-loader" role="status" aria-label="Loading AtmosX">
+    <div class="lo-backdrop"></div>
+    <div class="lo-content">
+      <!-- Animated weather sun SVG -->
+      <div class="lo-sun-wrap" aria-hidden="true">
+        <svg class="lo-sun-svg" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="loSunCore" cx="40%" cy="38%" r="62%">
+              <stop offset="0%"   stop-color="#FFF8DC"/>
+              <stop offset="38%"  stop-color="#FDB813"/>
+              <stop offset="100%" stop-color="#F57C00"/>
+            </radialGradient>
+            <radialGradient id="loGlow" cx="50%" cy="50%" r="50%">
+              <stop offset="0%"   stop-color="rgba(253,184,19,0.35)"/>
+              <stop offset="100%" stop-color="rgba(253,184,19,0)"/>
+            </radialGradient>
+          </defs>
+          <!-- Outer glow halo -->
+          <circle class="lo-halo" cx="60" cy="60" r="56" fill="url(#loGlow)"/>
+          <!-- Rotating rays ring -->
+          <g class="lo-rays">
+            <line x1="60" y1="4"  x2="60" y2="16"  stroke="#FDB813" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+            <line x1="60" y1="104" x2="60" y2="116" stroke="#FDB813" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+            <line x1="4"  y1="60" x2="16"  y2="60" stroke="#FDB813" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+            <line x1="104" y1="60" x2="116" y2="60" stroke="#FDB813" stroke-width="3.5" stroke-linecap="round" opacity="0.9"/>
+            <line x1="15.5" y1="15.5" x2="24" y2="24"  stroke="#FDB813" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+            <line x1="96"   y1="96"   x2="104.5" y2="104.5" stroke="#FDB813" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+            <line x1="104.5" y1="15.5" x2="96" y2="24" stroke="#FDB813" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+            <line x1="24"    y1="96"   x2="15.5" y2="104.5" stroke="#FDB813" stroke-width="3" stroke-linecap="round" opacity="0.7"/>
+          </g>
+          <!-- Pulsing core disc -->
+          <circle class="lo-core" cx="60" cy="60" r="26" fill="url(#loSunCore)"/>
+          <!-- Inner highlight -->
+          <circle cx="52" cy="52" r="7" fill="rgba(255,255,255,0.22)" class="lo-core"/>
+        </svg>
+      </div>
+
+      <!-- Brand wordmark -->
+      <div class="lo-brand">
+        <span class="lo-brand-name">Atmos<span class="lo-brand-x">X</span></span>
+        <span class="lo-brand-tag">Climate Intelligence</span>
+      </div>
+
+      <!-- Status text -->
+      <p class="lo-status" id="loStatusText">Initialising atmospheric systems…</p>
+
+      <!-- Progress bar -->
+      <div class="lo-progress-track">
+        <div class="lo-progress-fill"></div>
+      </div>
+    </div>
+  </div>
+
   <!-- System SVG Icon Sprite -->
   <svg xmlns="http://www.w3.org/2000/svg" style="display:none;">
     <symbol id="i-pin" viewBox="0 0 24 24"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></symbol>
@@ -201,7 +391,7 @@
         </div>
         <div class="brand-meta">
           <div class="brand-title-row">
-            <h1 class="main-brand-title">weather<span class="brand-gpt-accent">GPT</span></h1>
+            <h1 class="main-brand-title"><img src="icons/app-icon.svg" class="header-icon" alt="icon">weather<span class="brand-gpt-accent">GPT</span></h1>
           </div>
           <div class="sub">Rain, wind, UV, Swell, Snow & Pressure Intelligence</div>
         </div>
@@ -269,7 +459,7 @@
       <!-- ======================================================================
            HERO CURRENT WEATHER & TODAY FORECAST BAR (SECTION 10 LAYOUT)
            ====================================================================== -->
-      <div class="hero-weather-card" id="heroOverviewCard">
+      <div class="hero-weather-card scroll-reveal" id="heroOverviewCard">
         <div class="hero-weather-main">
           <div class="hero-weather-left">
             <div class="hero-loc-row">
@@ -288,9 +478,7 @@
           </div>
           
           <div class="hero-weather-right">
-            <div class="hero-wx-icon-box">
-              <svg class="hero-big-svg" id="heroConditionSvg"><use href="#i-wx-rain"/></svg>
-            </div>
+            <div class="hero-wx-icon-box" id="dynamic-weather-icon"></div>
             <div class="hero-metrics-pill-grid">
               <div class="hero-mini-stat" title="Relative Humidity">
                 <svg class="icon"><use href="#i-drop"/></svg>
@@ -304,12 +492,21 @@
                 <svg class="icon"><use href="#i-layers"/></svg>
                 <span id="heroStatPressure">1008 hPa</span>
               </div>
+              <div class="city-mood-widget mood-neutral" id="cityMoodWidget" title="Atmospheric Sentiment">
+                <span class="mood-label">City Mood:</span>
+                <div class="flip-counter" id="mood-score">
+                  <div class="flip-reel">
+                    <span class="flip-item">50%</span>
+                  </div>
+                </div>
+                <span id="mood-emoji">😌</span>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- Today's Interactive Forecast Carousel -->
-        <div class="hero-timeline-section">
+        <div class="hero-timeline-section scroll-reveal">
           <div class="timeline-header-row">
             <span class="timeline-title">TODAY'S FORECAST TIMELINE</span>
             <span class="timeline-sub">Scroll or tap slot for details</span>
@@ -322,7 +519,7 @@
 
 
       <!-- Active Warning Alert Banner (If severe alert condition active) -->
-      <section class="warning-banner" id="warningBanner" role="alert" aria-live="assertive">
+      <section class="warning-banner scroll-reveal" id="warningBanner" role="alert" aria-live="assertive">
         <div class="banner-inner">
           <div class="warning-icon">
             <svg class="icon"><use href="#i-alert"/></svg>
@@ -337,7 +534,7 @@
       </section>
 
       <!-- AI Conversational Stream Card -->
-      <div class="ai-chat-card">
+      <div class="ai-chat-card scroll-reveal">
         <div class="chat-col-header">
           <div class="chat-col-title">
             <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-chat"/></svg>
@@ -519,7 +716,7 @@
       </div>
 
       <!-- WEATHER PULSE: LIVE INTELLIGENCE (Derived strictly from verified hourly observations) -->
-      <div class="weather-pulse-card" id="weatherPulseCard">
+      <div class="weather-pulse-card scroll-reveal" id="weatherPulseCard">
         <div class="wp-card-header">
           <div class="wp-header-left">
             <span class="wp-icon-emoji" id="wpEmoji">🌦️</span>
@@ -561,7 +758,7 @@
       <div class="observatory-grid">
 
         <!-- Atmospheric Pressure Barometer Card (UPGRADED WITH DETAILS) -->
-        <div class="glass-widget-card pressure-banner-card" id="pressureWidgetCard">
+        <div class="glass-widget-card pressure-banner-card scroll-reveal" id="pressureWidgetCard">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-layers"/></svg>
@@ -605,7 +802,7 @@
         </div>
 
         <!-- Dynamic Rainfall Wave Card (UPGRADED WITH DETAILS & DUAL MODE) -->
-        <div class="glass-widget-card rainfall-card" id="rainfallWaveCard">
+        <div class="glass-widget-card rainfall-card scroll-reveal" id="rainfallWaveCard">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-drop"/></svg>
@@ -676,7 +873,7 @@
         <div class="dash-gauges-grid">
           
           <!-- Gauge 1: Wind Compass -->
-          <div class="glass-widget-card circular-gauge-card">
+          <div class="glass-widget-card circular-gauge-card scroll-reveal">
             <div class="gauge-card-header">
               <span class="gauge-name">Wind Speed</span>
               <span class="gauge-badge" id="valWindDirBadge">WSW</span>
@@ -710,7 +907,7 @@
           </div>
 
           <!-- Gauge 2: Feels-Like Dial -->
-          <div class="glass-widget-card circular-gauge-card">
+          <div class="glass-widget-card circular-gauge-card scroll-reveal">
             <div class="gauge-card-header">
               <span class="gauge-name">Thermal Index</span>
               <span class="gauge-badge">Apparent</span>
@@ -731,7 +928,7 @@
           </div>
 
           <!-- Gauge 3: Visibility Arc -->
-          <div class="glass-widget-card circular-gauge-card">
+          <div class="glass-widget-card circular-gauge-card scroll-reveal">
             <div class="gauge-card-header">
               <span class="gauge-name">Visibility</span>
               <span class="gauge-badge" id="valVisibilityStatus">Optimal</span>
@@ -752,7 +949,7 @@
           </div>
 
           <!-- Gauge 4: Precipitation Droplet Ring -->
-          <div class="glass-widget-card circular-gauge-card">
+          <div class="glass-widget-card circular-gauge-card scroll-reveal">
             <div class="gauge-card-header">
               <span class="gauge-name">Precipitation</span>
               <span class="gauge-badge">Real-Time</span>
@@ -775,7 +972,7 @@
         </div>
 
         <!-- Air Quality Index Widget -->
-        <div class="glass-widget-card aqi-matrix-card" id="dashAqiCard">
+        <div class="glass-widget-card aqi-matrix-card scroll-reveal" id="dashAqiCard">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon"><use href="#i-layers"/></svg>
@@ -826,7 +1023,7 @@
         </div>
 
         <!-- Interactive Hourly Forecast Card -->
-        <div class="glass-widget-card hourly-card" id="dashHourlyCard">
+        <div class="glass-widget-card hourly-card scroll-reveal" id="dashHourlyCard">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon"><use href="#i-radar"/></svg>
@@ -848,7 +1045,7 @@
         </div>
 
         <!-- UV Index & Solar Exposure Intelligence Widget -->
-        <div class="glass-widget-card solar-uv-card" id="dashSolarUvCard" role="button" tabindex="0" title="Click for UV & Solar Exposure Breakdown">
+        <div class="glass-widget-card solar-uv-card scroll-reveal" id="dashSolarUvCard" role="button" tabindex="0" title="Click for UV & Solar Exposure Breakdown">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon" style="color:var(--accent-amber);"><use href="#i-wx-sun"/></svg>
@@ -927,7 +1124,7 @@
         </div>
 
         <!-- Simulated Weather Radar Card -->
-        <div class="glass-widget-card radar-sim-card" id="dashRadarCard">
+        <div class="glass-widget-card radar-sim-card scroll-reveal" id="dashRadarCard">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-radar"/></svg>
@@ -971,7 +1168,7 @@
         </div>
 
         <!-- Best Time Today Recommendation Card -->
-        <div class="glass-widget-card best-time-card" id="dashBestTimeCard">
+        <div class="glass-widget-card best-time-card scroll-reveal" id="dashBestTimeCard">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon" style="color:var(--accent-amber);"><use href="#i-sun"/></svg>
@@ -1008,7 +1205,7 @@
         </div>
 
         <!-- Real-Time Weather Impact & Advisory Card -->
-        <div class="glass-widget-card weather-impact-card" id="dashWeatherImpactCard">
+        <div class="glass-widget-card weather-impact-card scroll-reveal" id="dashWeatherImpactCard">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-shield"/></svg>
@@ -1049,7 +1246,7 @@
         </div>
 
         <!-- Grounding Confidence & Telemetry Evidence Card -->
-        <div class="glass-widget-card evidence-stream-card">
+        <div class="glass-widget-card evidence-stream-card scroll-reveal">
           <div class="widget-header">
             <div class="widget-title">
               <svg class="icon" style="color:var(--accent-cyan);"><use href="#i-shield"/></svg>
@@ -1539,11 +1736,11 @@
         </button>
       </div>
       <div class="modal-body">
-        <div class="loc-search-box">
+        <form id="citySearchForm" class="loc-search-box" action="javascript:void(0);">
           <svg class="icon"><use href="#i-globe"/></svg>
           <input type="text" id="inputSearchCity" class="loc-search-input" placeholder="Search any city worldwide (e.g. Wayanad, Chennai, Tokyo, Paris)..." autocomplete="off">
           <button type="button" id="btnSearchCity" class="btn-search-city">Search</button>
-        </div>
+        </form>
         <div class="loc-gps-row">
           <button type="button" id="btnUseCurrentLocation" class="btn-use-gps" title="Detect and load live telemetry for current GPS coordinates">
             <svg class="icon" style="width:16px;height:16px;color:var(--accent-cyan);"><use href="#i-pin"/></svg>
